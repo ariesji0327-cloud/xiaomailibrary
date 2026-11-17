@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小麦的绘本库</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#f8f5ee;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
+  color:#37312a;
+  padding:32px 20px 80px;
+  max-width:1180px;
+  margin:0 auto;
+  -webkit-font-smoothing:antialiased;
+}
+h1{
+  font-family:Georgia,"Songti SC",serif;
+  font-size:36px;font-weight:500;letter-spacing:.5px;
+  color:#43392d;margin-bottom:10px;
+}
+.sub{color:#7d7163;font-size:15px;margin-bottom:18px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+.stat{font-size:12.5px;padding:5px 11px;border-radius:20px;background:#efe8dd;color:#6b5f51}
+.stat b{color:#43392d;font-weight:600}
+#search{
+  width:100%;padding:14px 18px;border:1px solid #e5dbcd;border-radius:14px;
+  font-size:15px;background:#fff;outline:none;transition:.2s;
+}
+#search:focus{border-color:#c8b49c;box-shadow:0 0 0 3px rgba(200,180,156,.16)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 10px}
+.fb{
+  padding:8px 13px;border:none;border-radius:11px;background:#efe8dd;color:#5c5044;
+  font-size:13px;cursor:pointer;transition:.18s;white-space:nowrap;
+}
+.fb:hover{background:#e7ded1}
+.fb.on{background:#b8a896;color:#fff}
+.count{font-size:12.5px;color:#9a8d7d;margin:6px 0 20px}
+.grid{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:24px;align-items:start}
+.column{display:flex;flex-direction:column;gap:22px;min-width:0;align-items:stretch}
+@media(max-width:700px){.grid{gap:14px}.column{gap:14px}}
+.card{
+  background:#fff;border-radius:18px;box-shadow:0 3px 11px rgba(90,78,64,.07);
+  overflow:hidden;transition:box-shadow .22s ease;cursor:pointer;
+}
+.card:hover{box-shadow:0 9px 22px rgba(90,78,64,.13)}
+.inner{padding:16px}
+.top{display:flex;gap:14px}
+.cover{
+  width:76px;height:102px;border-radius:9px;flex:none;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Georgia,serif;font-size:28px;font-weight:600;color:rgba(255,255,255,.95);
+  letter-spacing:1px;user-select:none;
+}
+.info{flex:1;min-width:0}
+.title{font-size:14.5px;font-weight:600;line-height:1.45;margin-bottom:7px;color:#37312a;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:11.5px;padding:3px 7px;border-radius:6px;white-space:nowrap}
+.t-green{background:#e6f2e6;color:#2c5c2c}
+.t-yellow{background:#fff7e0;color:#705820}
+.t-orange{background:#fce9dd;color:#8b4f2e}
+.t-blue{background:#e8f0f7;color:#2e4e68}
+.t-purple{background:#ede9f2;color:#534470}
+.t-red{background:#f9e9e9;color:#863b3b}
+.t-soft{background:#f3f0eb;color:#5c5044}
+.t-pen{background:#e6f1ee;color:#2f5f55}
+.t-read{background:#fff4cc;color:#805c00}
+.t-done{background:#e7f4e7;color:#286428}
+.status{display:flex;gap:6px;margin-top:10px}
+.sbtn{
+  flex:1;font-size:11.5px;padding:4px 0;border-radius:7px;border:1px solid #e6ddcf;
+  background:#fff;color:#6b5f51;cursor:pointer;transition:.15s;
+}
+.sbtn:hover{background:#faf7f1}
+.sbtn.on{border-color:#c3ae94;background:#efe6d8;color:#4a3f33;font-weight:600}
+.rating{display:flex;align-items:center;gap:5px;margin-top:9px;user-select:none}
+.stars{display:flex;gap:3px;cursor:pointer;touch-action:none}
+.star{position:relative;width:1em;height:1em;font-size:19px;line-height:1;overflow:hidden;color:#ddd5c8}
+.star .fill{position:absolute;left:0;top:0;height:100%;width:0%;overflow:hidden;color:#e6b85c}
+.rnum{font-size:12px;color:#a3968a;min-width:22px}
+.detail{
+  padding:0 16px;max-height:0;overflow:hidden;transition:max-height .32s ease;
+  font-size:13px;line-height:1.72;color:#585045;
+}
+.detail.open{max-height:900px;padding-bottom:16px}
+.detail hr{border:none;border-top:1px solid rgba(120,105,90,.15);margin:12px 0}
+.row{margin:5px 0}
+.row b{color:#43392d;font-weight:600}
+.note{margin-top:8px;padding:9px 11px;background:#faf7f1;border-radius:9px;color:#5b5348;line-height:1.75}
+.empty{text-align:center;color:#9a8d7d;padding:60px 0;font-size:15px}
+
+/* 首页导航与新增绘本工作台 */
+.home-nav{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:18px 0 20px}
+.nav-btn,.primary-btn,.soft-btn{border:0;border-radius:11px;padding:10px 16px;font-size:13px;cursor:pointer;transition:.18s}
+.nav-btn{background:#efe8dd;color:#655747}.nav-btn.active{background:#7d6b58;color:#fff}
+.primary-btn{background:#76624e;color:#fff}.primary-btn:hover{background:#65533f}
+.soft-btn{background:#f3eee6;color:#665747;border:1px solid #e5dbcd}
+.home-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+.home-tools #search{flex:1;min-width:220px}
+.modal-mask{position:fixed;inset:0;background:rgba(38,31,24,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:99}
+.modal-mask.show{display:flex}.modal{background:#fffdf9;width:min(760px,100%);max-height:90vh;overflow:auto;border-radius:20px;padding:22px;box-shadow:0 18px 60px #30271d40}
+.modal h2{font-size:21px;font-weight:600;margin-bottom:6px}.modal-sub{font-size:13px;color:#897c6d;margin-bottom:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;color:#746757}.field input,.field select,.field textarea{width:100%;border:1px solid #e5dbcd;border-radius:10px;padding:10px 12px;background:#fff;font:inherit;font-size:14px;color:#43392d;outline:none}.field textarea{min-height:92px;resize:vertical}
+.search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:10px;margin:12px 0}.result{border:1px solid #eee4d8;border-radius:12px;padding:9px;cursor:pointer}.result img{width:100%;height:118px;object-fit:contain;background:#f7f3ec;border-radius:8px}.result b{display:block;font-size:12px;margin-top:6px;line-height:1.4}.result small{font-size:11px;color:#8a7c6b}.modal-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}.hint{font-size:12px;color:#8b7c6b;line-height:1.6;margin-top:8px}.ai-status{font-size:12px;color:#786b5c;margin-top:8px;min-height:18px}
+@media(max-width:620px){.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.modal{padding:17px}}
+
+
+.cover{position:relative}
+.cover-add-btn{
+  position:absolute;right:4px;bottom:4px;width:22px;height:22px;border-radius:6px;
+  border:none;background:rgba(55,49,42,.72);color:#fff;font-size:15px;font-weight:600;
+  line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:.18s;backdrop-filter:blur(2px);z-index:2;padding:0;
+}
+.cover-add-btn:hover{background:#43392d;transform:scale(1.08)}
+.cover-upload-box{
+  display:flex;gap:14px;align-items:center;padding:12px;border:1px dashed #d6c8b6;
+  border-radius:12px;background:#faf7f1;
+}
+.cover-preview{
+  width:76px;height:102px;border-radius:9px;background:#efe8dd;flex:none;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  color:#9a8d7d;font-size:12px;text-align:center;border:1px solid #e5dbcd;
+}
+.cover-preview img{width:100%;height:100%;object-fit:contain;background:#fff}
+.cover-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.paste-zone{
+  margin-top:8px;padding:8px 12px;border-radius:9px;background:#f3eee6;
+  border:1px dashed #cbbba6;font-size:12px;color:#6b5f51;cursor:pointer;
+  outline:none;transition:.18s;
+}
+.paste-zone:focus,.paste-zone:hover{border-color:#76624e;background:#efe7db;color:#37312a}
+
+
+.detail-actions{
+  display:flex;justify-content:flex-end;margin-top:12px;padding-top:10px;
+  border-top:1px dashed rgba(120,105,90,.16);
+}
+.edit-icon-btn{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;
+  border:1px solid #dfd3c3;background:#faf7f1;color:#5c5044;font-size:12.5px;
+  font-weight:500;cursor:pointer;transition:.18s;
+}
+.edit-icon-btn:hover{background:#efe6d8;border-color:#c3ae94;color:#37312a}
+
+/* 独立书籍信息编辑页面（全屏覆盖工作区） */
+.edit-page-overlay{
+  position:fixed;inset:0;background:#f8f5ee;z-index:120;display:none;
+  overflow-y:auto;padding:24px 20px 80px;
+}
+.edit-page-overlay.show{display:block}
+.edit-page-wrap{
+  max-width:780px;margin:0 auto;background:#fffdf9;border-radius:22px;
+  padding:28px 26px 32px;box-shadow:0 10px 36px rgba(67,57,45,.09);
+  border:1px solid #ece3d5;
+}
+.edit-page-topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid #ece3d5;
+  flex-wrap:wrap;
+}
+.edit-page-title-group h2{
+  font-family:Georgia,"Songti SC",serif;font-size:24px;font-weight:600;color:#43392d;
+}
+.edit-page-title-group p{font-size:13px;color:#897c6d;margin-top:4px}
+.danger-zone{
+  margin-top:32px;padding-top:22px;border-top:1px dashed #e6c8c8;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.danger-btn{
+  width:100%;padding:13px 18px;border:none;border-radius:12px;
+  background:#c93b3b;color:#fff;font-size:15px;font-weight:600;
+  cursor:pointer;transition:.18s;box-shadow:0 4px 14px rgba(201,59,59,.22);
+}
+.danger-btn:hover{background:#b02e2e;box-shadow:0 6px 18px rgba(201,59,59,.3)}
+.danger-hint{font-size:12px;color:#9a7b7b}
+@media(max-width:620px){
+  .edit-page-wrap{padding:20px 16px 26px}
+}
+
+
+/* 云端登录与同步状态 */
+#cloudBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:9px 12px;border:1px solid #e5dbcd;border-radius:12px;background:#fffdf9;font-size:12px;color:#6b5f51}
+#cloudStatus{display:flex;align-items:center;gap:6px}
+#backupBooksBtn{margin-left:auto;border:1px solid #b9a58d;background:#fff;color:#554638;border-radius:9px;padding:7px 11px;font-size:12px;cursor:pointer}
+#backupBooksBtn:disabled{opacity:.55;cursor:wait}
+.cloud-dot{width:8px;height:8px;border-radius:50%;background:#b99a6b;display:inline-block}
+.cloud-dot.ok{background:#4d9a65}.cloud-dot.err{background:#c75b50}
+
+</style>
+</head>
+<body>
+<div id="cloudBar" class="show">
+  <span id="cloudStatus"><i class="cloud-dot"></i><span>正在连接共享云端书库…</span></span>
+  <button id="backupBooksBtn" type="button">⬇ 备份绘本和封面</button>
+</div>
+
+<header>
+  <h1>小麦的绘本库</h1>
+  <div class="sub">按阅读等级整理的绘本分级书单 · 难度、蓝思、点读、题材一查即得</div>
+  <nav class="home-nav">
+    <button class="nav-btn active" id="navHome">首页</button>
+    <button class="nav-btn" id="navLibrary">书库</button>
+    <button class="primary-btn" id="addBookBtn">＋ 新增绘本</button>
+  </nav>
+  <div class="stats" id="stats"></div>
+  <div class="home-tools">
+    <input id="search" placeholder="搜索书名 / 作者 / 出版社 / 蓝思 / 题材…">
+    <button class="soft-btn" id="quickSearchBtn">🔎 搜索书籍封面</button>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="count" id="count"></div>
+</header>
+<div class="grid" id="grid"></div>
+<div class="modal-mask" id="addModal" role="dialog" aria-modal="true">
+ <section class="modal">
+  <h2>新增绘本</h2><div class="modal-sub">输入书名或 ISBN，先搜索封面，再补充书籍资料。</div>
+  <div class="form-grid">
+   <div class="field full"><label>书名 / ISBN</label><input id="newTitle" placeholder="例如：Maisy Goes Camping 或 ISBN"></div>
+   <div class="field full"><button class="soft-btn" id="searchBookBtn">搜索图书信息与封面</button><div class="hint">先尝试 Google Books 搜索；电商平台（淘宝、京东、亚马逊）需要各自开放平台授权后才能接入。</div><div class="search-results" id="searchResults"></div></div>
+      <div class="field full">
+    <label>绘本封面（支持搜索选择、本地上传或截图粘贴）</label>
+    <div class="cover-upload-box">
+      <div class="cover-preview" id="newCoverPreview">暂无封面</div>
+      <div style="flex:1;min-width:0">
+        <div class="cover-btns">
+          <button type="button" class="soft-btn" id="newLocalUploadBtn">📁 本地上传封面</button>
+          <button type="button" class="soft-btn" id="newPasteBtn">📋 粘贴截图</button>
+          <button type="button" class="soft-btn" id="newRemoveCoverBtn" style="display:none;color:#863b3b">移除封面</button>
+          <input type="file" id="newCoverFile" accept="image/*" style="display:none">
+        </div>
+        <div class="paste-zone" id="newPasteZone" tabindex="0">💡 点击此处后按 <b>Ctrl+V / Cmd+V</b> 可直接粘贴截图（或点击上方“粘贴截图”按钮读取剪贴板）</div>
+      </div>
+    </div>
+   </div>
+   <div class="field"><label>作者 / 出版社</label><input id="newAuthor" placeholder="作者、出版社"></div>
+   <div class="field"><label>语言</label><select id="newLang"><option>中文</option><option>英文</option><option>中英双语</option></select></div>
+   <div class="field"><label>适读年龄</label><input id="newAge" placeholder="例如：3-6岁"></div>
+   <div class="field"><label>蓝思 Lexile</label><input id="newLexile" placeholder="例如：AD450L / 无"></div>
+   <div class="field"><label>题材标签</label><input id="newTopic" placeholder="例如：自然科普·动物认知"></div>
+   <div class="field"><label>书籍形态</label><input id="newForm" placeholder="例如：精装绘本 32页"></div>
+   <div class="field"><label>阅读分级</label><select id="newLevel"><option value="green">🟢 0-2岁</option><option value="yellow">🟡 2-4岁</option><option value="orange">🟠 4-6岁</option><option value="blue">🔵 6-7岁</option><option value="purple">🟣 7-9岁</option><option value="red">🔴 9岁+</option></select></div>
+   <div class="field"><label>是否支持点读</label><select id="newPen"><option value="false">非点读</option><option value="true">点读</option></select></div>
+   <div class="field full"><label>AI 生成绘本介绍</label><textarea id="newNote" placeholder="生成后可在这里编辑：故事内容、核心主题、阅读价值、适读建议……"></textarea><button class="soft-btn" id="aiIntroBtn">✨ AI 帮我生成书籍介绍</button><div class="ai-status" id="aiStatus">AI 接口尚未配置。接入安全的后台 AI 服务后，可根据书名、作者和书籍信息自动生成介绍。</div></div>
+  </div>
+  <div class="modal-actions"><button class="soft-btn" id="cancelAdd">取消</button><button class="primary-btn" id="saveNewBook">保存到书库</button></div>
+ </section>
+</div>
+
+
+<div class="modal-mask" id="coverModal" role="dialog" aria-modal="true">
+ <section class="modal" style="width:min(480px,100%)">
+  <h2 id="coverModalTitle">设置绘本封面</h2>
+  <div class="modal-sub">支持本地图片上传，或直接粘贴截图（自动压缩保存，刷新不丢失）。</div>
+  <div class="cover-upload-box">
+    <div class="cover-preview" id="editCoverPreview">暂无封面</div>
+    <div style="flex:1;min-width:0">
+      <div class="cover-btns">
+        <button type="button" class="soft-btn" id="editLocalUploadBtn">📁 本地上传</button>
+        <button type="button" class="soft-btn" id="editPasteBtn">📋 粘贴截图</button>
+        <button type="button" class="soft-btn" id="editRemoveCoverBtn" style="color:#863b3b">移除封面</button>
+        <input type="file" id="editCoverFile" accept="image/*" style="display:none">
+      </div>
+      <div class="paste-zone" id="editPasteZone" tabindex="0">💡 点击此处后按 <b>Ctrl+V / Cmd+V</b> 粘贴截图</div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button type="button" class="soft-btn" id="cancelCoverModal">取消</button>
+    <button type="button" class="primary-btn" id="saveCoverModal">保存封面</button>
+  </div>
+ </section>
+</div>
+
+
+<!-- 独立书籍信息编辑页面 -->
+<div class="edit-page-overlay" id="editBookPage" role="dialog" aria-modal="true">
+  <div class="edit-page-wrap">
+    <div class="edit-page-topbar">
+      <div class="edit-page-title-group">
+        <h2>✏️ 编辑书籍信息</h2>
+        <p id="editPageSub">修改后点击保存，自动同步到本地书库</p>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button type="button" class="soft-btn" id="backFromEditPage">← 返回书库</button>
+        <button type="button" class="primary-btn" id="saveEditBookBtn">💾 保存修改</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field full">
+        <label>书名</label>
+        <input id="editBookTitle" placeholder="请输入书名">
+      </div>
+      <div class="field full">
+        <label>作者 / 出版社</label>
+        <input id="editBookAuthor" placeholder="例如：Eric Carle / Penguin">
+      </div>
+      <div class="field">
+        <label>语言</label>
+        <input id="editBookLang" list="langOptions" placeholder="例如：英文 / 中文 / 双语（中英）">
+        <datalist id="langOptions">
+          <option value="英文">
+          <option value="中文">
+          <option value="双语（中英）">
+        </datalist>
+      </div>
+      <div class="field">
+        <label>适读年龄</label>
+        <input id="editBookAge" placeholder="例如：2-5岁">
+      </div>
+      <div class="field">
+        <label>蓝思值（Lexile）</label>
+        <input id="editBookLexile" placeholder="例如：AD200L / 无">
+      </div>
+      <div class="field">
+        <label>题材标签</label>
+        <input id="editBookTopic" placeholder="例如：认知启蒙 / 情绪社交">
+      </div>
+      <div class="field">
+        <label>书籍形态</label>
+        <input id="editBookForm" placeholder="例如：精装绘本 32页 / 纸板书">
+      </div>
+      <div class="field">
+        <label>阅读分级</label>
+        <select id="editBookLevel">
+          <option value="green">🟢 0-2岁</option>
+          <option value="yellow">🟡 2-4岁</option>
+          <option value="orange">🟠 4-6岁</option>
+          <option value="blue">🔵 6-7岁</option>
+          <option value="purple">🟣 7-9岁</option>
+          <option value="red">🔴 9岁+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>是否支持点读</label>
+        <select id="editBookPen">
+          <option value="false">非点读</option>
+          <option value="true">点读</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>点读笔品牌 / 点读说明（选填）</label>
+        <input id="editBookPenBrand" placeholder="例如：小彼恩 / 盖世 / 小蝌蚪">
+      </div>
+      <div class="field full">
+        <label>书籍介绍</label>
+        <textarea id="editBookNote" style="min-height:140px" placeholder="输入故事简介、阅读价值、亲子共读建议等……"></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button type="button" class="soft-btn" id="cancelEditBookBtn">取消</button>
+      <button type="button" class="primary-btn" id="saveEditBookBtnBottom">💾 保存修改</button>
+    </div>
+
+    <div class="danger-zone">
+      <button type="button" class="danger-btn" id="deleteBookBtn">🗑️ 删除这本图书</button>
+      <div class="danger-hint">删除后将从当前书库中移除该图书（需二次确认）</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const BOOKS = [{"id": 1, "title": "Where Is the Green Sheep?（绿绵羊在哪里？）", "author": "Mem Fox 文 / Judy Horacek 绘 / Penguin（Viking）", "lang": "英文", "age": "0-3岁（纸板书/绘本双版本）", "lexile": "无（未查到官方蓝思；普遍标 AD140L 左右）", "topic": "认知启蒙（方位·颜色·反义词）+ 韵文（重复句式）", "form": "厚页绘本（32页，重复句式）", "status": "在用", "note": "经典低幼认知书：一页一只羊（蓝羊、红羊、洗澡的羊、荡秋千的羊），全篇同一句式“Here is the… sheep”，不断重复到最后一页才找到绿绵羊。重复度极高，是 8 个月-2 岁最容易建立“听到熟悉句式”的书，也是第一本可以让孩子“接话”的英文书", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 2, "title": "Brown Bear, Brown Bear, What Do You See?", "author": "Bill Martin Jr. / Eric Carle", "lang": "英文", "age": "2-5岁", "lexile": "AD200L", "topic": "认知启蒙（颜色/动物）/ 童谣韵律", "form": "纸板书", "status": "待读", "note": "官方 Lexile AD200L；小彼恩点读版", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 3, "title": "Usborne Lift-the-flap Colours", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD200L）", "topic": "认知启蒙（颜色）", "form": "翻翻纸板书", "status": "待读", "note": "Usborne 翻翻认知系列", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 4, "title": "Usborne Lift-the-flap Counting Book", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD200L）", "topic": "认知启蒙（数数 1-10）", "form": "翻翻纸板书", "status": "待读", "note": "Usborne 翻翻认知系列", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 5, "title": "Usborne Lift-the-flap Opposites", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD210L）", "topic": "认知启蒙（反义词·方位词）", "form": "翻翻纸板书", "status": "待读", "note": "open/closed、above/below 等对照词", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 6, "title": "Usborne Lift-the-flap Word Book", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD210L）", "topic": "认知启蒙（日常高频名词）", "form": "翻翻纸板书", "status": "待读", "note": "Usborne 翻翻认知系列", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 7, "title": "Usborne Lift-the-flap abc", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD210L）", "topic": "认知启蒙（字母 A-Z）", "form": "翻翻纸板书", "status": "待读", "note": "马戏团主题字母翻翻书", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 8, "title": "Usborne Lift-the-Flap First 100 Farm Words", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD220L）", "topic": "认知启蒙（农场词汇）", "form": "翻翻纸板书", "status": "待读", "note": "50+ 翻翻页，农场主题词汇", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 9, "title": "Usborne Lift-the-flap First Maths", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD220L）", "topic": "数学启蒙（数字·数量·简单加减）", "form": "翻翻纸板书", "status": "待读", "note": "Usborne 翻翻认知系列", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 10, "title": "Usborne Lift-the-flap Seasons and Weather", "author": "Usborne 出版", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD220L）", "topic": "认知启蒙（四季·天气）", "form": "翻翻纸板书", "status": "待读", "note": "Usborne 翻翻认知系列", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 11, "title": "From Head to Toe", "author": "Eric Carle", "lang": "英文", "age": "1-4岁", "lexile": "210L", "topic": "认知启蒙（身体动作）/ 亲子互动", "form": "纸板书", "status": "待读", "note": "官方 Lexile 210L；小彼恩点读版", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 12, "title": "Eric Carle's Story Library（4册盒装）", "author": "Eric Carle（Puffin · 小彼恩）", "lang": "英文", "age": "0-4岁（官方 2+）", "lexile": "无（个别单册 BR）", "topic": "认知启蒙（昆虫/自然/数数）+ 童谣韵律", "form": "纸板书套装（4册）", "status": "待读", "note": "含 The Very Hungry Caterpillar、The Very Busy Spider、The Very Lonely Firefly、The Very Quiet Cricket", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 13, "title": "DK Pop-up Peekaboo! Flower", "author": "DK 出版（Pop-up Peekaboo! 系列）", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD230L）", "topic": "认知科普（立体翻翻·自然动植物）", "form": "精装立体翻翻纸板书", "status": "待读", "note": "每翻页弹出立体机关；同系列6册成套", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 14, "title": "DK Pop-up Peekaboo! Forest", "author": "DK 出版（Pop-up Peekaboo! 系列）", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD230L）", "topic": "认知科普（立体翻翻·自然动植物）", "form": "精装立体翻翻纸板书", "status": "待读", "note": "每翻页弹出立体机关；同系列6册成套", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 15, "title": "DK Pop-up Peekaboo! Tree", "author": "DK 出版（Pop-up Peekaboo! 系列）", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD230L）", "topic": "认知科普（立体翻翻·自然动植物）", "form": "精装立体翻翻纸板书", "status": "待读", "note": "每翻页弹出立体机关；同系列6册成套", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 16, "title": "DK Pop-up Peekaboo! Frog", "author": "DK 出版（Pop-up Peekaboo! 系列）", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD240L）", "topic": "认知科普（立体翻翻·自然动植物）", "form": "精装立体翻翻纸板书", "status": "待读", "note": "每翻页弹出立体机关；同系列6册成套", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 17, "title": "DK Pop-up Peekaboo! Ocean", "author": "DK 出版（Pop-up Peekaboo! 系列）", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD240L）", "topic": "认知科普（立体翻翻·自然动植物）", "form": "精装立体翻翻纸板书", "status": "待读", "note": "每翻页弹出立体机关；同系列6册成套", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 18, "title": "DK Pop-up Peekaboo! Rainforest", "author": "DK 出版（Pop-up Peekaboo! 系列）", "lang": "英文", "age": "1-3岁", "lexile": "无官方蓝思（预估AD240L）", "topic": "认知科普（立体翻翻·自然动植物）", "form": "精装立体翻翻纸板书", "status": "待读", "note": "每翻页弹出立体机关；同系列6册成套", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 19, "title": "What Color Is It?（A Leaf Thief Book）", "author": "Alice Hemming / Nicola Slater（Scholastic）", "lang": "英文", "age": "0-3岁", "lexile": "AD380L", "topic": "认知启蒙（颜色）/ 自然认知", "form": "翻翻纸板书", "status": "待读", "note": "官方 Lexile AD380L", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 20, "title": "神奇的创意学习书·神奇字母 ABC", "author": "", "lang": "中文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（字母）", "form": "创意学习书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 21, "title": "神奇的创意学习书·神奇数字 123", "author": "", "lang": "中文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（数字）", "form": "创意学习书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 22, "title": "BUTT WHO'S THIS?", "author": "A lift-the-flap book of cheeky animal bottoms", "lang": "英文", "age": "0-2岁", "lexile": "无", "topic": "认知启蒙（动物/身体）/ 幽默", "form": "翻翻纸板书", "status": "待读", "note": "低幼纸板书无官方蓝思，按 BR 阶段参考", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 23, "title": "Child's Play 经典洞洞童谣书（Classic Books with Holes，9册盒装）", "author": "Annie Kubler / Pam Adams 等绘（Child's Play · 小彼恩 reading pen allowed）", "lang": "英文", "age": "1-3岁（官方标3-6，纸板/洞洞版婴儿期即可唱）", "lexile": "无（童谣韵文，无官方蓝思）", "topic": "童谣韵律 / 认知启蒙（数字·动物·日常）", "form": "洞洞绘本套装（9册）", "status": "待读", "note": "9册：The Ants Go Marching!、Hickory Dickory Dock、Mary Had a Little Lamb、There Was an Old Lady Who Swallowed a Fly、This Old Man、The Farmer in the Dell、Five Little Monkeys Jumping on the Bed、Over in the Meadow、Cows in the Kitchen；全押韵可唱，洞洞页做手指互动；盒面标 “9 Books reading pen allowed”。⚠️ 难度提示：比彩虹兔童谣、巴塔木童谣更难——那两套是每页一句的改编简化版，这套是传统童谣完整版（16-32 页整首唱完，含 There Was an Old Lady 的累积链条句、Over in the Meadow 的 1-10 数数长段），属 🟢 段内文字量最大的一套，排在 🟢 段最后读", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 24, "title": "I Love You Through and Through（我完完全全爱你）", "author": "Bernadette Rossetti-Shustak 文 / Caroline Jayne Church 绘 / Scholastic", "lang": "英文", "age": "0-3岁（纸板书）", "lexile": "无（未查到官方蓝思）", "topic": "睡前故事（亲子依恋）+ 认知（身体部位·情绪）", "form": "厚纸板书（Board Book）", "status": "在用", "note": "按身体部位和情绪走一遍：“I love your hair and eyes, your giggles and cries”——从头到脚、从笑到哭，最后一句 I love you through and through。最适合边念边摸小麦的头、鼻子、脚，做身体认知", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 25, "title": "Busy Around Town", "author": "Campbell", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（城市/交通）/ 生活场景", "form": "推拉机关纸板书", "status": "待读", "note": "原表书名小写，已规范化", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 26, "title": "Good Night, I Love You（晚安，我爱你）", "author": "Caroline Jayne Church 著绘 / Scholastic", "lang": "英文", "age": "0-3岁（纸板书 bedtime 系列）", "lexile": "无（未查到官方蓝思）", "topic": "睡前故事（亲子依恋）+ 韵文", "form": "厚纸板书（Board Book，圆角）", "status": "在用", "note": "睡前固定曲目：一页一句晚安，把一天收尾（洗澡、抱抱、关灯、爱）。文字极简、重复“I love you”，8 个月就能当睡前仪式念，是可以读几百遍的那种", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 27, "title": "I Will Love You Forever（我会永远爱你）", "author": "Caroline Jayne Church 著绘 / Scholastic", "lang": "英文", "age": "0-3岁（纸板书）", "lexile": "无（未查到官方蓝思）", "topic": "睡前故事（亲子依恋·承诺）+ 韵文", "form": "厚纸板书（Board Book）", "status": "在用", "note": "主题是“无论你长大、走远，我都会一直爱你”，用星星、月亮的意象表达永恒承诺。四本里文字稍长一点点，可以作为睡前这组的收尾本", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 28, "title": "Bug Block", "author": "Christopher Franceschelli / Peskimo", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（昆虫）", "form": "长条纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 29, "title": "BuildaBlock", "author": "Christopher Franceschelli / Peskimo", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（工程/建筑）", "form": "长条纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 30, "title": "Farm Block", "author": "Christopher Franceschelli / Peskimo", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（农场动物）", "form": "长条纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 31, "title": "Spot Goes to the Farm", "author": "Eric Hill/小彼恩", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（农场动物）", "form": "翻翻纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 32, "title": "Spot's Birthday party", "author": "Eric Hill/小彼恩", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙 / 生活场景", "form": "纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 33, "title": "Goodnight Koala（待确认）", "author": "Katie Button / Two Windmills", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "情绪社交（睡前安抚）/ 生活习惯", "form": "纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 34, "title": "Car, Car, Truck, Jeep", "author": "Katrina Charman 文 / Nick Sharratt 绘（Bloomsbury · 小彼恩）", "lang": "英文", "age": "2-5岁", "lexile": "无（童谣改词，无官方蓝思）", "topic": "童谣韵律 + 认知启蒙（交通工具）", "form": "儿歌改词绘本（28页）", "status": "待读", "note": "按《Baa Baa Black Sheep》旋律改词，全书都是车、火车、飞机", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 35, "title": "Go, Go, Pirate Boat", "author": "Katrina Charman 文 / Nick Sharratt 绘（Bloomsbury · 小彼恩）", "lang": "英文", "age": "2-5岁", "lexile": "无（童谣改词，无官方蓝思）", "topic": "童谣韵律 + 幻想故事（海盗冒险）", "form": "儿歌改词绘本", "status": "待读", "note": "按《Row, Row, Row Your Boat》旋律改词", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 36, "title": "The Whales on the Bus", "author": "Katrina Charman 文 / Nick Sharratt 绘（Bloomsbury · 小彼恩）", "lang": "英文", "age": "2-5岁", "lexile": "无（童谣改词，无官方蓝思）", "topic": "童谣韵律 + 认知启蒙（动物/交通工具）", "form": "儿歌改词绘本", "status": "待读", "note": "按《The Wheels on the Bus》旋律改词；同系列还有 Car, Car, Truck, Jeep / Go, Go, Pirate Boat", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 37, "title": "大美照片书三册（Big Beautiful Ocean / Wild Wonderful Animals / Fun Fascinating Vehicles）", "author": "Kidsbooks Publishing 出品 / 盖世童书引进点读版", "lang": "英文", "age": "1-5岁（实物图认知为主，官方定位 little ones）", "lexile": "无（未查到官方蓝思）", "topic": "认知启蒙（百科/实物图鉴）+ 自然科普（海洋·动物·交通工具）", "form": "硬纸板大书（A Photographic Exploration 系列，全实拍照片）", "status": "待读", "note": "三册分别是海洋生物、野生动物、交通工具，全部真实摄影图+名称标注，字极少，是0-3岁最容易上手的“指物命名”素材。盖世点读版可点读图鉴名词与音效，适合小麦现在这个月龄开始指认。同系列还有更多主题，这三册是国内引进的三本", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 38, "title": "How Do I Love You?（我有多爱你）", "author": "Marion Dane Bauer 文 / Caroline Jayne Church 绘 / Scholastic", "lang": "英文", "age": "0-3岁（纸板书）", "lexile": "无（未查到官方蓝思）", "topic": "睡前故事（亲子依恋）+ 认知（动作·比较）", "form": "厚纸板书（Board Book）", "status": "在用", "note": "用一连串比喻回答“我有多爱你”：像小鸟会飞、像星星会亮。押韵、句子短，和上面那本同一画风，两本放一起读会很有连贯感", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 39, "title": "My Itty-Bitty Squeakheart", "author": "Patricia Hegarty（tiger tales）", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "情绪社交（亲情/爱）", "form": "纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 40, "title": "We Hug Night Night", "author": "Patricia Hegarty / Thomas Elliott", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "情绪社交（亲情/睡前安抚）", "form": "纸板书", "status": "待读", "note": "与本表 We Are Love 同作者", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 41, "title": "The Colourful World of Petr Horáček", "author": "Petr Horáček / Baby Walker", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（颜色/动物）", "form": "纸板书套装", "status": "待读", "note": "Walker 纸板书合集", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 42, "title": "The Petr Horáček Board Book Collection", "author": "Petr Horáček", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙 / 动物", "form": "纸板书合集", "status": "待读", "note": "多本装合集，可按套管理", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 43, "title": "Future Me 系列 4 册（Engineer / Soccer Star / Ballet Dancer / Vet）", "author": "Phoenix Bright 文 / Patricia Pessôa 绘（Future Me 系列）", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思）", "topic": "职业启蒙（工程师/球星/芭蕾舞者/兽医）+ 韵文短句 + 职业词汇认知", "form": "厚页绘本（每册约32页，小幅面、硬页）", "status": "待读", "note": "一套讲“长大以后我想当……”：每本跟随一个孩子度过这个职业的一天，把工具、场景、动作词都摆进画面（脚手架、球场、把杆、听诊器）。文字是短句押韵，图里可指认的实物极多，是职业认知+词汇拓展的低门槛入口", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 44, "title": "Five Green and Speckled Frogs", "author": "Priscilla Burris / 小彼恩", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "童谣韵律（英文儿歌）/ 认知启蒙（数字）", "form": "儿歌改编纸板书", "status": "待读", "note": "小彼恩点读版；原书名有笔误，已改为 Five Green", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 45, "title": "The Ants Go Marching", "author": "Priscilla Burris / 小彼恩", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "童谣韵律（英文儿歌）/ 认知启蒙（数字）", "form": "儿歌改编纸板书", "status": "待读", "note": "小彼恩点读版", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 46, "title": "Usborne Musical Books 音乐发声书 2册（The Animal Orchestra plays Mozart / plays Bach）", "author": "Sam Taplin 文 / Ag Jatkowska 绘（Usborne）", "lang": "英文", "age": "6个月-3岁（官方 6+ months / 12+ months）", "lexile": "无（发声书无官方蓝思）", "topic": "认知启蒙（古典音乐·乐器）+ 童谣韵律", "form": "纸板发声书（按页面圆形按钮播放乐曲片段）", "status": "待读", "note": "「Animal Orchestra」系列：森林动物组成的管弦乐团，按按钮听莫扎特/巴赫名曲片段，画面上每种动物对应一件乐器（熊拉大提琴、狐狸吹长笛、刺猬敲鼓），可顺便做乐器认知。官方口径 6+ months，是真正能给小月龄按的书；没有故事线，文字是轻介绍，难度低。同系列还有 Beethoven / Chopin / Tchaikovsky / Vivaldi；另有 The Orchestra 等", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 47, "title": "巴塔木童谣（Bada Rhyme 童谣书·24册套装）", "author": "[韩]巴塔木 著/绘，小彼恩 改编（北京语言大学出版社）", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "童谣韵律（英文儿歌）/ 认知启蒙", "form": "点读套装（24册）", "status": "待读", "note": "巴塔木英语趣学系列；点读版；一套24册按1条记", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 48, "title": "春天来了", "author": "乐智小天地（巧虎）系列 / 中国中福会出版社", "lang": "中文", "age": "1.5-3岁（封面标注 20 月龄主题书）", "lexile": "无（中文书不适用蓝思）", "topic": "认知启蒙（季节·自然）+ 语言启蒙", "form": "薄册绘本（16-24页）", "status": "在用", "note": "巧虎 20 月龄主题书，讲春天骑车、花草、青蛙。颜色饱和、画面元素少，很适合当下 8 个月+ 的视觉追踪和指认，是中文书里最早能上手的", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 49, "title": "Summer（夏天）", "author": "书脊署名 EUNKYUAN·RONG（出版社 Imprint，待核对全名）", "lang": "英文", "age": "0-3岁", "lexile": "无（未查到官方蓝思）", "topic": "认知绘本（季节·夏天）+ 无字/极少字画面叙事", "form": "精装绘本（大画面、饱和色块）", "status": "待读", "note": "整本讲“夏天是什么样”：晒太阳、玩水、吃西瓜、淋雨。文字极少，几乎靠画面读图，适合现在这个月龄指物命名；作者与出版社页面信息不足，已标待核对", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 50, "title": "睡觉时间到（巧虎好习惯玩具书·第14个月适用）", "author": "儿童挑战项目组 编 / 乐智小天地（巧虎）· 中国中福会出版社", "lang": "中文", "age": "1-2岁（封面标注 第14个月适用）", "lexile": "无（中文书不适用蓝思）", "topic": "习惯养成（睡前流程）+ 认知启蒙（作息）", "form": "玩具书/纸板书（好习惯玩具书，带机关）", "status": "在用", "note": "巧虎宝宝版进阶第 14 个月的主体书，主题是睡前流程（洗澡—喝奶—刷牙—盖被子—睡觉）。玩具书带机关，正好对应小麦现在开始建立睡前仪式的阶段，是中文书里最该先用的睡前固定节目", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 51, "title": "Peekaboo 主题式英语单词画册 ① Home Sweet Home（PikaPoo 单词大书）", "author": "元将文化 编著（海豚出版社 Dolphin Books）", "lang": "英文", "age": "0-4岁", "lexile": "无", "topic": "认知启蒙（词汇/生活场景）/ 游戏互动（找图躲猫猫）", "form": "点读单词画册", "status": "待读", "note": "1200个单词；5大场景（客厅/卧室/厨房/浴室/花园）；躲猫猫找图游戏玩法；“游戏升级版”；小彼恩点读款", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 52, "title": "小鸡球球成长绘本系列（6册）", "author": "入山智 著绘 / 长江少年儿童出版社", "lang": "中文", "age": "0-3岁", "lexile": "无（中文书不适用蓝思）", "topic": "成长故事（分离·找妈妈·帮忙·礼貌）+ 情绪社交", "form": "小开本纸板书（6册，圆角厚页）", "status": "在用", "note": "六册：小鸡球球，藏猫猫！/ 谢谢啦！/ 小鸡球球帮妈妈做事 / 晚安，小鸡球球 / 妈妈在哪儿？/ 好朋友。主打“捉迷藏—找妈妈—说谢谢”这类 0-3 岁最吃的生活情境，画面极简、翻页有小机关感。注意这是【成长绘本系列】，和主表另一条【小鸡球球触摸书系列】不是同一套，触摸板那套是感官书", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小鸡球球", "pointLabel": "点读"}, {"id": 53, "title": "小鸡球球触摸书系列", "author": "入山智", "lang": "中文", "age": "0-1岁", "lexile": "无", "topic": "认知启蒙 / 亲子互动", "form": "翻翻纸板书", "status": "待读", "note": "中文低幼翻翻书", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 54, "title": "I Love You Soooo Much!", "author": "出版信息待确认", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "情绪社交（亲情/爱）", "form": "触摸互动纸板书", "status": "待读", "note": "每页可翻出拥抱/亲吻机关", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 55, "title": "One, Two, Peek-a-Boo!", "author": "出版信息待确认", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（数数）/ 感官互动", "form": "洞洞翻翻机关纸板书", "status": "待读", "note": "副标题 with lots to count and discover；小彼恩点读款，与上一本同系列", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 56, "title": "Red, Blue, Peek-a-Boo!", "author": "出版信息待确认", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（颜色）/ 感官互动", "form": "洞洞翻翻机关纸板书", "status": "待读", "note": "副标题 a rainbow of colours to discover；小彼恩点读款", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 57, "title": "双语启蒙认知大百科", "author": "小彼恩", "lang": "双语（中英）", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（百科/物品分类）", "form": "点读认知大书", "status": "待读", "note": "小彼恩点读版（用户确认）", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 58, "title": "彩虹兔童谣第一辑", "author": "小彼恩", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "童谣韵律（英文儿歌）/ 认知启蒙", "form": "点读儿歌纸板书", "status": "待读", "note": "小彼恩点读版；第一辑", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 59, "title": "My First Words Book（我的第一本双语单词书）", "author": "小彼恩 主编（辽宁少年儿童出版社 / 新世纪出版社）", "lang": "双语（中英）", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（词汇/单词认知）", "form": "点读单词书", "status": "待读", "note": "小彼恩点读款；实物图单词书", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 60, "title": "圈圈出来玩", "author": "平木光枝", "lang": "中文", "age": "0-2岁", "lexile": "无", "topic": "认知启蒙 / 生活习惯", "form": "纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 61, "title": "圈圈去散步", "author": "平木光枝", "lang": "中文", "age": "0-2岁", "lexile": "无", "topic": "认知启蒙 / 生活习惯", "form": "纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 62, "title": "宝宝的脸", "author": "平木光枝", "lang": "中文", "age": "0-1岁", "lexile": "无", "topic": "认知启蒙（五官/表情）", "form": "纸板书", "status": "待读", "note": "", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 63, "title": "我不是苹果哦", "author": "平木光枝", "lang": "中文", "age": "0-2岁", "lexile": "无", "topic": "认知启蒙 / 幽默", "form": "洞洞·变身纸板书", "status": "待读", "note": "带“变身啦”机关，可互动", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 64, "title": "盖世字母书（Alphabet 系列）", "author": "盖世", "lang": "英文", "age": "0-3岁", "lexile": "无", "topic": "认知启蒙（字母）", "form": "字母书（小册/卡）", "status": "待读", "note": "盖世出品；照片仅拍到 Z、B 部分，全套字母书各册可另计", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 65, "title": "Baby Why 英语系列", "author": "盖世童书", "lang": "英文", "age": "1-4岁", "lexile": "无", "topic": "认知启蒙（生活场景：洗澡/吃饭/运动/零食）/ 亲子互动", "form": "翻页机关纸板书（20 册套装）", "status": "待读", "note": "盖世童书出品；英文启蒙向，生活化短句为主；全套20册，含涂画、找一找、拼图、贴纸、面具书等机关；支持点读", "c": "green", "cl": "🟢 0-2岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 66, "title": "Little Leprechaun 系列 4 册（A Lucky Day / It's Moving Day / Look Out / Speak Out, Little Leprechaun）", "author": "（作者待核对）/ 系列平装", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思）", "topic": "节日故事（圣帕特里克节·小妖精）+ 生活情境（搬家/当心/敢说话）", "form": "平装绘本（4册，绿色系大幅插画）", "status": "待读", "note": "一套以爱尔兰小妖精为主角的低幼系列，每本讲一个生活小情境：幸运的一天、搬家日、注意安全、勇敢开口。句式短、重复多，适合2岁后做情境预演", "c": "green", "cl": "🟢 0-2岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 67, "title": "5-Minute Maisy Stories（波波鼠五个钟头故事集）", "author": "Lucy Cousins 著绘 / Walker Books", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思；Maisy 单册多为 BR-200L 区间）", "topic": "动物故事（小鼠日常）+ 生活习惯（穿衣·购物·看医生）", "form": "精装合集（多则 5 分钟短故事合订本）", "status": "待读", "note": "原版 Maisy 短故事合集，一本顶一摞单册，每则 3-5 分钟刚好是一个睡前故事的长度。文字极简、重复句式多，是入门英文共读的主力。注意：主表另有 Maisy Goes Camping / What's the Time, Maisy? 两条（小彼恩点读版），与本合集内容可能有重叠，读的时候可以先翻合集再挑单册", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 68, "title": "Maisy Goes Camping", "author": "Lucy Cousins", "lang": "英文", "age": "2-4岁", "lexile": "无", "topic": "幻想故事 / 生活体验（露营）", "form": "平装绘本", "status": "待读", "note": "", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 69, "title": "What's the Time, Maisy?", "author": "Lucy Cousins", "lang": "英文", "age": "3-5岁", "lexile": "无", "topic": "认知启蒙（时间）/ 生活场景", "form": "时钟操作书", "status": "待读", "note": "可拨动指针", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 70, "title": "I'm a Prince!（我是王子！）", "author": "A. H. Benjamin 文 / Alessandro Montagnana 绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（身份想象·自我认同）+ 幽默", "form": "平装绘本（浅蓝+草绿，猪戴王冠）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 小猪坚信自己是王子（书里原话：Pig is a prince for the head），要大家都按王子的规矩来，闹出一串笑话。适合2-3岁“角色扮演期”读，读完全家可以演一遍", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 71, "title": "Mimose & Sam 系列 4 册（Catch the Thief / Lost and Found / Snack Season / Try to Sleep）", "author": "CATHON 著绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（伙伴搭档·季节与自然）+ 极简对话 + 幽默", "form": "平装绘本（4册，四季各一本，绿/菌菇/南瓜/落叶）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 小女孩 Mimose 和熊猫 Sam 的四季探案小故事：春天抓小偷、夏天蘑菇下找东西、秋天南瓜屋、冬天落叶堆里睡不着。文字极少、几乎全靠画面，四本连读就是一年四季的自然观察", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 72, "title": "Bonkers About Beetroot（迷上甜菜根）", "author": "Cath Jones 文 / Chris Jevons 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（农场·种植）+ 幽默 + 押韵", "form": "平装绘本（品红大底，斑马/企鹅/老鼠排队刨甜菜）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 农场动物集体迷上甜菜根，越种越大，最后甜菜根大到搬不动。重复句式+押韵，适合练 vegetable 类词", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 73, "title": "Little Pea（小豌豆）", "author": "Davide Cali 文 / Sébastien Mourrain 绘 / Nick Frost 英译", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（小与大·视角转换）+ 微观自然（昆虫）", "form": "精装绘本（大幅叶丛，蚂蚁/瓢虫/蚱蜢/黑猫同框）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 主角是个豌豆大的小孩，在一片叶子里遇到蚱蜢、瓢虫、毛毛虫，还有一只在叶下盯着他的黑猫——同一片草叶对大人是背景、对他来说是一片森林。典型的视角缩放绘本，适合练 big/small/tiny 这类反义词", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 74, "title": "Giant George（巨人格雷）", "author": "Gilles Baum 文 / Amandine Piu 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（体型差异·温柔巨人）+ 幽默", "form": "薄册绘本（白底，橙黄毛绒大块头+一群小孩）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 一个橙色的大个子乔治，小孩们在他身上爬上爬下。大与小的身体幽默，和 Little Pea 正好互为对照", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 75, "title": "Nunuche: All Hugs No Bite（努努什：只抱不咬）", "author": "Guillaume Bianco 文 / Marie Kerascoët 绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（宠物·温柔）+ 否定句与对比句式", "form": "精装绘本（浅粉底，红裙小孩与红伞）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 同系列的“性格说明本”：努努什只抱不咬、只蹭不闹，全书用 “All hugs, no bites” 这类正反对照句，是很自然的否定句输入", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 76, "title": "Nunuche: Fluffy like Cotton Candy（努努什：像棉花糖一样蓬松）", "author": "Guillaume Bianco 文 / Marie Kerascoët 绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（宠物·大狗与小孩）+ 感官形容（软/蓬松）+ 幽默", "form": "精装绘本（奶油黄底，巨大白狗与小孩体型反差）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 大狗努努什像一团棉花糖，蓬松到能整个裹住小孩。体型反差是笑点核心，画面里全是 fluff、soft、hug 这类词", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 77, "title": "A Smell（一种气味）", "author": "Gülşah Yemen 文 / Özlem Fedai Korçak 绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "感官认知绘本（嗅觉）+ 通感表达", "form": "平装绘本（白底，蓝色气味光带+小虫子主角）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 五感系列的嗅觉本：用彩色光带把“闻到的味道”画出来，从香的到难闻的都有了。适合做“闻一闻猜一猜”的亲子游戏", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 78, "title": "A Touch（一种触感）", "author": "Gülşah Yemen 文 / Özlem Fedai Korçak 绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "感官认知绘本（触觉）+ 形容词与材质词汇", "form": "平装绘本（橙粉光带，材质实物拼贴）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 五感系列的触觉本：冰块、仙人掌、化石、叶子、松果一个个排开，讲光滑/粗糙/冰凉/扎手。可与实物配对（真的摸一遍冰块与毛绒）", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 79, "title": "What Can You Do With a Color?（你能用颜色做什么？）", "author": "Gülşah Yemen 文 / Çağrı Odabaşı 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "创造力绘本（颜色游戏）+ 三原色与混色", "form": "平装绘本（白底，一团蓝色颜料+黑色小墨点主角）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 把一团蓝色颜料当成开放题：能变成雨、变成天空、变成什么？全书没有标准答案，适合3岁后玩“颜料接力”", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 80, "title": "What Can You Do With a Line?（你能用一条线做什么？）", "author": "Gülşah Yemen 文 / Çağrı Odabaşı 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "创造力绘本（线条游戏）+ 图形想象", "form": "平装绘本（白底，一道黄色放射线）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 一条线的无数种可能：光、风、绳子、地平线。可与前一册连读，练 draw a line / make a circle 这类动作词", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 81, "title": "What Sounds Do You Love?（你喜欢什么声音？）", "author": "Gülşah Yemen 文 / Çağrı Odabaşı 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "感官认知绘本（听觉）+ 拟声词", "form": "平装绘本（白底，彩色乱线团与乐器小人）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 五感系列里讲声音的一本，从乐器到心跳，全书大量拟声词，是很好的“声音猜猜看”素材", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 82, "title": "Does a Bear Poo in the Woods?（熊会在树林里拉屎吗？）", "author": "Jonny Leighton 文 / Mike Byrne 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "幽默绘本（如厕·羞耻感）+ 动物认知", "form": "平装绘本（森林蓝绿底，棕熊主角）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 一只害羞的熊到处找“没人看得见的地方”嗯嗯，每个动物都跑来围观。如厕期最好用的一类书，笑点低龄但有效", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 83, "title": "Which Is the Right Ball?（哪个才是对的球？）", "author": "Katarina Macurová 著绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "选择与比较绘本 + 球类认知 + 幽默", "form": "薄册绘本（亮黄底，小熊踩滑板+红球）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 熊要挑一个“对的球”，试了气球、雪球、仙人球……一路试错。比较级与形容词的天然素材", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 84, "title": "A Big Tasty Earthworm（一条又大又好吃的蚯蚓）", "author": "Katarína Macurová 著绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（吃与不吃·挑食）+ 昆虫认知 + 幽默", "form": "平装绘本（草绿底，小鸡+西瓜+蚯蚓）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 小鸡在草地上遇到一条蚯蚓，觉得它“又大又好吃”，蚯蚓当然不这么想——双方视角的反差就是全部笑点。讲食物链与同理心，也可拿来聊挑食", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 85, "title": "Bird on a Wire（电线上的鸟）", "author": "Kate Gordon & Nathaniel Eckstrom 著绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "幽默绘本（攀比·先来后到）+ 鸟类认知", "form": "平装绘本（蓝底，电线上一串鸟）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 一只鸟占了电线最好的位置，接着一只只鸟飞来，谁都想站得更高、更靠中间，最后挤成一串。把“争抢位置”这件事画成排队游戏，结局一句话就能逗笑", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 86, "title": "Yesterday, When I Was a Baby（昨天，当我还小的时候）", "author": "Laureen Turcot 著绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "成长绘本（长大这件事·自我认知）+ 幽默", "form": "平装绘本（米白底，简笔小人）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 小孩回忆自己“当婴儿时”的种种糗事，对比现在的自己会做的事——“昨天”和“现在”的对照结构，正对应小麦现在这个从婴儿往幼儿走的阶段", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 87, "title": "Calm Down, Cooper!（冷静点，库珀！）", "author": "Lily Murray 文 / Anna Chernyshova 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "情绪绘本（冷静·冲动控制）+ 幽默", "form": "平装绘本（亮黄底，狗+猫+仓鼠抢拖把）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 狗狗库珀太兴奋总闯祸，伙伴们一直喊“Calm down”。情绪管理主题里少数真正好笑的，念的时候可以配夸张语气", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 88, "title": "Have You Heard...?（你听说了吗……？）", "author": "Mariapaola Pesce 文 / Martina Tonello 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（谣言传播·信息失真）+ 农场动物", "form": "平装绘本（米色底，一大群农场动物）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 农场里一句话被一只只动物传下去，越传越离谱。讲“传话游戏”的绝佳素材，读完可以全家玩耳语接力", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 89, "title": "siblings!（兄弟姐妹！）", "author": "Rocio Bonilla 著绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "家庭绘本（兄弟姐妹关系·嫉妒与爱）+ 幽默", "form": "平装绘本（芥末黄底，姐姐是犀牛）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 弟弟眼里姐姐就是一头犀牛（“My sister is a rhino.”）——把兄弟姐妹间的嫌弃与依赖画得很准。小麦暂时是独生女，但这本可留作“如果将来有弟弟妹妹”的预演，也适合讲别人家的情况", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 90, "title": "Not My Hats!（不是我的帽子！）", "author": "Tracy Gunaratnam 文 / Alea Marley 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（分享·占有欲）+ 幽默", "form": "平装绘本（亮蓝底，北极熊顶着一摞帽子）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 北极熊死活不肯把帽子借人，一顶顶叠到头上。物权意识期的经典冲突，句式重复好跟读", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 91, "title": "Fold-Out + Play: Doll's House（折叠娃娃屋）", "author": "Ingela P Arrhenius 绘 / Nosy Crow 出版", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（预估AD350L）", "topic": "游戏书（角色扮演·手工搭建）", "form": "立体折叠游戏书", "status": "待读", "note": "含可抠人物、3D家具、贴纸，可搭完整小屋；非故事类，以动手玩为主", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 92, "title": "Peek-a-Flap Fairy Tales: Three Little Pigs（三只小猪）", "author": "Emanuela Brusati 文 / Giovanna Zoboli 绘 / Whitestar Kids", "lang": "英文", "age": "2-4岁", "lexile": "无官方蓝思（预估AD380L）", "topic": "童话（经典改编）+ 翻翻互动", "form": "翻翻纸板书", "status": "待读", "note": "Peek-a-Flap 童话系列；翻页制造惊喜，认识房屋材质", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 93, "title": "Peek-a-Flap Fairy Tales: Little Red Riding Hood（小红帽）", "author": "Emanuela Brusati 文 / Giovanna Zoboli 绘 / Whitestar Kids", "lang": "英文", "age": "2-4岁", "lexile": "无官方蓝思（预估AD390L）", "topic": "童话（经典改编）+ 翻翻互动", "form": "翻翻纸板书", "status": "待读", "note": "同系列；剧情简化，翻翻增强参与感", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 94, "title": "I'm (Almost) Never Bored（我几乎从不无聊）", "author": "Anna Milbourne 文 / Usborne 出版（Usborne 情绪洞洞书系列）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（预估AD400L）", "topic": "情绪社交（无聊·想象力）", "form": "精装洞洞书（镂空设计）", "status": "待读", "note": "同系列；教孩子自己找乐子、开动想象", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 95, "title": "I'm not (very) Afraid of Being Alone（我不太怕一个人待着）", "author": "Anna Milbourne 文 / Usborne 出版（Usborne 情绪洞洞书系列）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（预估AD410L）", "topic": "情绪社交（独处焦虑·安全感）", "form": "精装洞洞书（镂空设计）", "status": "待读", "note": "Usborne 情绪洞洞系列4册之一；原版无小彼恩点读资源；文字短、柔和", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 96, "title": "I'm (Almost) Always Kind（我几乎总是很友善）", "author": "Anna Milbourne 文 / Usborne 出版（Usborne 情绪洞洞书系列）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（预估AD420L）", "topic": "情绪社交（共情·友善）", "form": "精装洞洞书（镂空设计）", "status": "待读", "note": "同系列；讲善意不是时时刻刻都容易做到", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 97, "title": "I'm NOT (very) AFRAID of the DARK（我不太怕黑）", "author": "Anna Milbourne 文 / Usborne 出版（Usborne 情绪洞洞书系列）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（预估AD430L）", "topic": "情绪社交（怕黑·安全感）", "form": "精装洞洞书（镂空设计）", "status": "待读", "note": "同系列；洞洞光影设计氛围感强", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 98, "title": "The Boy Who Cried Poo!（喊“拉臭臭”的男孩）", "author": "Frances Lincoln Children's Books（作者待核对）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（预估AD400L）", "topic": "生活习惯（如厕）+ 幽默", "form": "精装绘本 32页", "status": "待读", "note": "如厕期笑话：一次次喊“我要拉臭臭”却只是借口，最后真出事；可用于如厕训练铺垫", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 99, "title": "A Damsel Not in Distress!（不需要被救的公主）", "author": "Frances Lincoln Children's Books（作者待核对）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（预估AD460L）", "topic": "反传统童话·独立自信", "form": "精装绘本 32页", "status": "待读", "note": "公主自己解决问题，拒绝被“英雄”拯救；适合聊性别刻板印象", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 100, "title": "Hairy Maclary 十册合集（Hairy Maclary from Donaldson's Dairy / Hairy Maclary's Bone / Sit / Scattercat / Caterwaul Caper / Hat Tricks / Showbusiness / Rumpus at the Vet / Shoo / and Zachary Quack）", "author": "Lynley Dodd 著绘 / Puffin（Penguin）", "lang": "英文", "age": "2-5岁（官方 reading age 2-5，共读可到 2-6）", "lexile": "无（未查到官方蓝思；部分单册约 400-500L）", "topic": "动物故事（狗·小镇日常）+ 韵文（押韵长句·节奏感）", "form": "平装绘本10册盒装（ISBN 978-0-141-38875-5，U.K. £59.90）", "status": "待读", "note": "Lynley Dodd 的代表作，新西兰“国民绘本”。主角是毛茸茸的黑色杂毛狗 Hairy Maclary，每册一个小镇日常事件，全篇押韵、节奏密集，朗朗上口到大人也能背下来。十册：from Donaldson's Dairy（出场介绍）/ Bone（叼着骨头走）/ Sit（学坐下）/ Scattercat（追猫 Scattercat）/ Caterwaul Caper（夜半猫叫）/ Hat Tricks（帽子把戏）/ Showbusiness（才艺表演）/ Rumpus at the Vet（兽医诊所大乱）/ Shoo（赶苍蝇）/ and Zachary Quack（和鸭子 Zachary Quack）。与前面那套 Slinky Malinki（同世界观的黑猫）可配对读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 101, "title": "Slinky Malinki 小猫五册（Slinky Malinki / Catflaps / Open the Door / Early Bird / Christmas Crackers）", "author": "Lynley Dodd 著绘 / Puffin（Penguin）", "lang": "英文", "age": "2-5岁（官方 reading age 0-3， rhyming picture book 实际共读 2-5）", "lexile": "580L（仅首册有出处：Slinky Malinki ~580L / AR 3.6；其余四册未查到官方蓝思）", "topic": "动物故事（猫·捣蛋日常）+ 韵文（押韵长句·节奏感）", "form": "平装绘本（32页左右，每册独立故事）", "status": "待读", "note": "Lynley Dodd 是《Hairy Maclary》系列作者，这套是同世界观的黑猫 Slinky Malinki。五册：Slinky Malinki（偷东西的黑猫）/ Slinky Malinki, Catflaps（带猫洞·十只猫排排坐）/ Slinky Malinki, Open the Door（和 Stickybeak Sid 把全屋门打开）/ Slinky Malinki, Early Bird（早起搞事）/ Slinky Malinki's Christmas Crackers（圣诞装饰大乱）。特点是押韵长句+生僻形容词多（如 horrendous、mayhem），念起来非常上头，但词汇难度高于一般低幼书，适合当磨耳朵韵文听", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 102, "title": "Pom Pom Gets the Grumps（波波闹脾气）", "author": "Sophy Henn 著绘 / Penguin Random House（英国）", "lang": "英文", "age": "2-4岁", "lexile": "AD410L（待核：未查到官方出处）", "topic": "情绪社交（闹脾气·情绪修复）+ 友谊", "form": "精装绘本 32页", "status": "待读", "note": "Pom Pom Panda 系列第1册：Pom Pom 一早心情糟透，朋友们的热情反而让他更炸毛，最后学会把“我今天心情不好”说出来", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 103, "title": "Pom Pom Is Super（波波最棒）", "author": "Sophy Henn 著绘 / Penguin Random House（英国）", "lang": "英文", "age": "2-4岁", "lexile": "AD420L（待核：未查到官方出处）", "topic": "自我认知（寻找特长·接纳不完美）", "form": "精装绘本 32页", "status": "待读", "note": "系列第2册：Pom Pom 看谁都有厉害的本事，觉得自己什么都不行，最后找到属于他自己的“super”", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 104, "title": "Pom Pom the Champion（波波的冠军赛）", "author": "Sophy Henn 著绘 / Penguin Random House（英国）", "lang": "英文", "age": "2-4岁", "lexile": "AD430L（待核：未查到官方出处）", "topic": "情绪社交（输赢观·游戏心态）", "form": "精装绘本 32页", "status": "待读", "note": "系列第3册：Pom Pom 一心想赢，输了就闹，慢慢学会享受“玩”的过程而不是只争第一", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 105, "title": "Llama Llama Library", "author": "Anna Dewdney / Viking", "lang": "英文", "age": "2-5岁", "lexile": "AD420L", "topic": "情绪社交（分离焦虑/睡前）/ 童谣韵律", "form": "纸板书套装", "status": "待读", "note": "官方 Lexile AD420L（Red Pajama）；点读", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 106, "title": "Llama Llama Mad at Mama（羊驼拉玛生妈妈的气）", "author": "Anna Dewdney 著绘 / Viking", "lang": "英文", "age": "3-5岁", "lexile": "无（未查到官方蓝思）", "topic": "情绪绘本（发脾气·逛超市）+ 韵文", "form": "精装绘本（Llama Llama 系列，橙封面）", "status": "待读", "note": "最经典的“崩溃现场”绘本：拉玛被妈妈拖去超市，越逛越烦，最后在货架间大哭大闹，妈妈没有吼他，只是蹲下来陪他收拾情绪。名场面就是这句 mad at mama，小麦开始闹脾气时会特别有共鸣", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 107, "title": "A House Full of Friends（住满朋友的小屋）", "author": "Lorraine Francis 文 / Pieter Gaudesaboos 绘 / 新知麦田（盖世）", "lang": "英文", "age": "3-5岁", "lexile": "无官方蓝思（预估AD420L）", "topic": "故事（搭建·派对）+ 找找书", "form": "精装绘本", "status": "待读", "note": "动物伙伴一起盖房子、办派对，每页藏小动物可玩找一找；盖世点读版（小怪兽/小蝌蚪笔）", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 108, "title": "Spend It!（花掉了！）", "author": "Cinders McLeod 著绘 / Nancy Paulsen Books（Penguin）", "lang": "英文", "age": "3-5岁", "lexile": "430L（Penguin Random House 官方；F&P J）", "topic": "财商启蒙（理性消费）", "form": "精装绘本 32页", "status": "待读", "note": "同系列：有限的胡萝卜怎么选、怎么花，学会做取舍", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 109, "title": "Earn It!（赚到了！）", "author": "Cinders McLeod 著绘 / Nancy Paulsen Books（Penguin）", "lang": "英文", "age": "3-5岁", "lexile": "AD480L（F&P J）", "topic": "财商启蒙（劳动与报酬）", "form": "精装绘本 32页", "status": "待读", "note": "Moneybunny 小兔子财商系列：把胡萝卜当货币，讲赚钱、存钱、花钱、给予四个基础概念", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 110, "title": "Give It!（给出去！）", "author": "Cinders McLeod 著绘 / Nancy Paulsen Books（Penguin）", "lang": "英文", "age": "3-5岁", "lexile": "AD500L（Bookroo；AR 约2.8）", "topic": "财商启蒙（分享与捐赠）", "form": "精装绘本 32页", "status": "待读", "note": "同系列：把胡萝卜分给别人，理解给予与分享的快乐", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 111, "title": "Save It!（存起来！）", "author": "Cinders McLeod 著绘 / Nancy Paulsen Books（Penguin）", "lang": "英文", "age": "3-5岁", "lexile": "AD500L（Bookroo；AR 约3.3）", "topic": "财商启蒙（储蓄·延迟满足）", "form": "精装绘本 32页", "status": "待读", "note": "同系列：想要的太多、胡萝卜不够，练习“先存后花”", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 112, "title": "Follow Me, Flo!（跟我走，弗洛！）", "author": "Jarvis 著绘 / Walker Books（英版）· Candlewick（美版）", "lang": "英文", "age": "2-5岁", "lexile": "AD440L", "topic": "亲子·追逐游戏 + 幽默", "form": "精装绘本 32页", "status": "待读", "note": "小鸭子 Flo 出门非要走在前面，一路追逐，适合边读边玩跟走游戏", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 113, "title": "Mrs Mole, I'm Home!（鼹鼠太太，我回来啦！）", "author": "Jarvis 著绘 / Walker Books（英版）· Candlewick（美版）", "lang": "英文", "age": "2-5岁", "lexile": "AD470L", "topic": "亲情·归属感 + 幽默", "form": "精装绘本 32页", "status": "待读", "note": "鼹鼠先生下班找不到家门，挖错了一路，最后回到家人身边", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 114, "title": "Tropical Terry（热带鱼特里）", "author": "Jarvis 著绘 / Walker Books（英版）· Candlewick（美版）", "lang": "英文", "age": "2-5岁", "lexile": "AD510L", "topic": "海洋故事·友谊 + 幽默", "form": "精装绘本 32页", "status": "待读", "note": "海底小鱼 Terry 想变成最酷的那条，绕了一圈发现做自己最好", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 115, "title": "Alan's Big, Scary Teeth（艾伦的大尖牙）", "author": "Jarvis 著绘 / Walker Books（英版）· Candlewick（美版）", "lang": "英文", "age": "2-5岁", "lexile": "AD690L（AR 3.2）", "topic": "自我接纳 + 幽默反转", "form": "精装绘本 32页", "status": "待读", "note": "鳄鱼 Alan 靠假牙吓唬森林动物，假牙丢了之后才被接纳真实的自己；Jarvis 全套4册之一", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 116, "title": "The Storm Whale（暴风雨里的小鲸鱼）", "author": "Benji Davies 著绘 / Simon & Schuster（英版）· Candlewick（美版）", "lang": "英文", "age": "3-6岁", "lexile": "约470L（Bookroo 估算，AR 2.3；官方未公布 Lexile）", "topic": "亲情（父子·守护）+ 自然", "form": "精装绘本 32页", "status": "待读", "note": "海边男孩 Noi 救起搁浅的小鲸鱼，爸爸忙碌中的沉默与陪伴；Benji Davies 5册之一", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 117, "title": "On Sudden Hill（在惊喜山上）", "author": "Benji Davies 著绘 / Simon & Schuster（英版）· Candlewick（美版）", "lang": "英文", "age": "3-6岁", "lexile": "AD520L", "topic": "友谊·想象力（纸箱王国）", "form": "精装绘本 32页", "status": "待读", "note": "两个孩子用纸箱造出整个世界，第三个孩子加入后学会分享友情", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 118, "title": "The Storm Whale in Winter（暴风雨里的小鲸鱼·冬天）", "author": "Benji Davies 著绘 / Simon & Schuster（英版）· Candlewick（美版）", "lang": "英文", "age": "3-6岁", "lexile": "约520L（Bookroo 估算，AR 约3.0；官方未公布 Lexile）", "topic": "亲情（重逢·思念）+ 自然", "form": "精装绘本 32页", "status": "待读", "note": "同系列续集：冬夜鲸鱼回来找 Noi，反过来救了他和爸爸", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 119, "title": "Grandma Bird（鸟奶奶）", "author": "Benji Davies 著绘 / Simon & Schuster（英版）· Candlewick（美版）", "lang": "英文", "age": "3-6岁", "lexile": "AD530L", "topic": "祖孙亲情·思念", "form": "精装绘本 32页", "status": "待读", "note": "Noi 去岛上奶奶家过暑假，从陌生到亲近，奶奶带他出海", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 120, "title": "Grandad's Island（爷爷的岛）", "author": "Benji Davies 著绘 / Simon & Schuster（英版）· Candlewick（美版）", "lang": "英文", "age": "3-6岁", "lexile": "AD610L（AR 3.4）", "topic": "生命教育（离别·死亡）", "form": "精装绘本 32页", "status": "待读", "note": "Syd 去爷爷的小岛，最后爷爷留在岛上没回来，温柔处理亲人离世", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 121, "title": "Bluey: Sleepytime（布鲁伊·睡觉时间）", "author": "Joe Brumm 原著 / Ladybird（英版）· Penguin Young Readers（美版）", "lang": "英文", "age": "2-5岁（英版标 2-4，美版标 4-8）", "lexile": "AD500L（F&P K）", "topic": "动画IP故事 + 情绪社交（睡前·安全感·独立睡）", "form": "精装绘本 32-40 页", "status": "待读", "note": "官方 Lexile AD500L / GRL K；对应 Bluey 名场面剧集「Sleepytime」，画面是太空梦境，收尾那句 I'm always here for you 很催泪；主表另有 Bluey: Super Story Set（点读版）", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 122, "title": "My Best Friend（我最好的朋友）", "author": "Rob Hodgson 著绘 / Frances Lincoln Children's Books", "lang": "英文", "age": "3-6岁", "lexile": "AD500L", "topic": "友谊（黑色幽默·反转）", "form": "精装绘本 32页", "status": "待读", "note": "小老鼠坚信猫头鹰是好朋友，结局黑色幽默反转；读完可聊“谁是真朋友”", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 123, "title": "Rain Before Rainbows（雨后有彩虹）", "author": "Smriti Prasadam-Halls 文 / David Litchfield 绘", "lang": "英文", "age": "4-7岁", "lexile": "AD540L", "topic": "情绪社交（治愈·希望）+ 诗意散文", "form": "精装绘本", "status": "待读", "note": "女孩与狐狸穿越风雨；文字如散文诗，适合家长带读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 124, "title": "The Squirrels Who Squabbled", "author": "Rachel Bright 文 / Jim Field 绘（Orchard Books）", "lang": "英文", "age": "3-6岁（Bookroo 标 3-5）", "lexile": "AD550L（AR 3.2 / F&P ~N）", "topic": "情绪社交（分享·合作）+ 童谣韵律", "form": "大开本绘本（32页/约605词）", "status": "待读", "note": "两只松鼠抢最后一颗松果；AR 3.2 是这一系列里文字密度较高的一本", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 125, "title": "The Koala Who Could", "author": "Rachel Bright 文 / Jim Field 绘（Orchard Books 小树苗）", "lang": "英文", "age": "3-6岁（Scholastic 版 3-6）", "lexile": "AD570L（AR 3.0 / GRL K）", "topic": "情绪社交（怕变化·勇气）+ 童谣韵律", "form": "大开本绘本（32页）", "status": "待读", "note": "Kevin 一只不肯离开树的考拉；Sainsbury 童书奖；美国 Scholastic 版才有蓝思", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 126, "title": "The Lion Inside", "author": "Rachel Bright 文 / Jim Field 绘（Orchard Books）", "lang": "英文", "age": "3-6岁（Scholastic 标 3-8）", "lexile": "AD600L（AR 3.1）", "topic": "情绪社交（自信·勇气）+ 童谣韵律", "form": "大开本绘本（32页/约593词）", "status": "待读", "note": "小老鼠想学狮子吼的经典故事；“动物谁系列”第 1 本，整套里蓝思最高", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 127, "title": "The Camel Who Had the Hump", "author": "Rachel Bright / Jim Field（Orchard）", "lang": "英文", "age": "2-6岁", "lexile": "无", "topic": "情绪社交（情绪管理/坏心情）", "form": "绘本", "status": "待读", "note": "", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 128, "title": "The Gecko and the Echo", "author": "Rachel Bright 文 / Jim Field 绘（Orchard Books）", "lang": "英文", "age": "3-6岁（英国标 2+）", "lexile": "无官方蓝思", "topic": "情绪社交（成名·善意）+ 童谣韵律", "form": "大开本绘本（32页）", "status": "待读", "note": "壁虎 Goldy 追星，最后明白朋友比名气重要", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 129, "title": "The Hugasaurus", "author": "Rachel Bright（Orchard）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "情绪社交（友情/和解）", "form": "绘本", "status": "待读", "note": "", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 130, "title": "The Pandas Who Promised", "author": "Rachel Bright 文 / Jim Field 绘（Orchard Books）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思", "topic": "情绪社交（承诺·信任）+ 童谣韵律", "form": "大开本绘本", "status": "待读", "note": "熊猫兄妹守约主题", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 131, "title": "The Way Home for Wolf", "author": "Rachel Bright 文 / Jim Field 绘（Orchard Books）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（仅有英国 Orchard 版）", "topic": "情绪社交（独立·求助）+ 童谣韵律", "form": "大开本绘本（32页）", "status": "待读", "note": "北极小狼 Wilf 逞强走丢；无美国分级版，所以查不到蓝思", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 132, "title": "The Whale Who Wanted More", "author": "Rachel Bright 文 / Jim Field 绘（Orchard Books）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思", "topic": "情绪社交（贪心·友谊）+ 童谣韵律", "form": "大开本绘本（32页）", "status": "待读", "note": "鲸鱼 Humphrey 收集满海底宝贝仍不满足", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 133, "title": "Franklin and Luna and the Book of Fairy Tales", "author": "Jen Campbell 文 / Katie Harnett 绘", "lang": "英文", "age": "4-7岁", "lexile": "AD560L", "topic": "幻想故事（童话冒险）+ 友情", "form": "精装绘本", "status": "待读", "note": "Franklin and Luna 系列第2本；与《Go to the Moon》同系列", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 134, "title": "Franklin and Luna Go to the Moon（富兰克林和露娜去月球）", "author": "Jen Campbell 文 / Katie Harnett 绘 / Thames & Hudson", "lang": "英文", "age": "3-5岁（官方 3-5）", "lexile": "无官方蓝思（未查到）", "topic": "幻想故事（龙与友情·寻找家人）+ 月球冒险", "form": "精装绘本 32 页", "status": "待读", "note": "Franklin and Luna 系列第1本（2018）；老龙富兰克林想知道自己从哪来，和露娜、乌龟 Neil Armstrong 一起上月球找家人；与主表《and the Book of Fairy Tales》同系列", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 135, "title": "The Fastest Drummer: Clap Your Hands for Viola Smith!（最快的鼓手）", "author": "Dean Robbins 文 / Susanna Chapman 绘", "lang": "英文", "age": "4-8岁", "lexile": "AD570L", "topic": "人物传记（音乐·打破性别偏见）+ 韵律", "form": "精装绘本", "status": "待读", "note": "传奇女鼓手 Viola Smith 传记；节奏感强，朗读可跟着打拍子", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 136, "title": "Giraffes Can't Dance", "author": "Giles Andreae / Guy Parker-Rees（Orchard）", "lang": "英文", "age": "2-5岁", "lexile": "AD570L", "topic": "情绪社交（自信/接纳自己）", "form": "绘本", "status": "待读", "note": "官方 Lexile AD570L / AR 3.8", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 137, "title": "Be Brave, Little Penguin", "author": "Giles Andreae / Guy Parker-Rees（Orchard）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "情绪社交（勇气/克服害怕）", "form": "绘本", "status": "待读", "note": "", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 138, "title": "Love Giraffes Can't Dance（紫色特别版）", "author": "Giles Andreae / Guy Parker-Rees（Orchard）", "lang": "英文", "age": "1.5-4岁", "lexile": "无官方蓝思（低幼韵文纸板书）", "topic": "情绪社交（爱/亲情）/ 童谣韵律", "form": "纸板书", "status": "待读", "note": "已核内页：抒情韵文，无叙事剧情（I love you like the swaying grass…）；含 somersault / boogie 等拓展动词，句短押韵，适合磨耳朵与亲子哄读；与蓝色标准版文本不同，按2册分别计入", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 139, "title": "A Thing Called Snow（叫雪的东西）", "author": "Yuval Zommer 著绘 / Big Picture Press（Bonnier）", "lang": "英文", "age": "4-7岁", "lexile": "AD570L", "topic": "自然科普（雪的形成·冬日）", "form": "精装绘本 32页", "status": "待读", "note": "狐狸和兔子第一次遇见“雪”，一路问动物什么是雪；Zommer 自然诗意三部之一", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 140, "title": "The Tree That's Meant to Be（长成自己的树）", "author": "Yuval Zommer 著绘 / Big Picture Press（Bonnier）", "lang": "英文", "age": "4-7岁", "lexile": "AD580L", "topic": "自然（生命循环）+ 自我接纳", "form": "精装绘本 32页", "status": "待读", "note": "一棵歪歪扭扭的小冷杉，被森林动物接纳，最后长成自己的样子；同系列", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 141, "title": "The Lights That Dance in the Night（夜空里跳舞的光）", "author": "Yuval Zommer 著绘 / Big Picture Press（Bonnier）", "lang": "英文", "age": "4-7岁", "lexile": "AD610L", "topic": "自然科普（极光·北极生命）", "form": "精装绘本 32页", "status": "待读", "note": "极光主题：从太空到北极动物、原住民，讲极光怎么形成；同系列", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 142, "title": "PIG the Rebel（叛逆的猪·巴哥犬皮格）", "author": "Aaron Blabey 著绘 / Scholastic Press（Pig the Pug 系列）", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "幽默故事（行为规则·叛逆）+ 韵文绘本（押韵短句）", "form": "精装绘本（Pig the Pug 系列，大图+夸张表情）", "status": "待读", "note": "Pig the Pug 系列里讲“专治各种不听话”的一本：皮格偏要反着来，越不让做越做，最后自食其果。全篇押韵短句，读起来像打油诗，孩子会跟着念；适合2岁后立规矩阶段当“反面教材”用", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 143, "title": "Sharing Saturdays（一起分享的周六）", "author": "Aaron M. Asis 著绘", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "家庭故事（周末·分享·兄弟姐妹）+ 生活流叙事", "form": "平装绘本（浅蓝+暖黄，自行车出行画面）", "status": "待读", "note": "每周六一家人骑车出门，沿途分享食物、分享时间、分享心情。节奏舒缓的生活流绘本，讲“分享”但不讲道理，靠画面里的细节说话", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 144, "title": "Llama Llama Mess Mess Mess（羊驼拉玛·乱七八糟）", "author": "Anna Dewdney 原著 / Reed Duncan 改编 / Viking", "lang": "英文", "age": "3-5岁", "lexile": "无（未查到官方蓝思）", "topic": "生活习惯绘本（收拾整理）+ 韵文", "form": "精装绘本（Llama Llama 系列，蓝封面）", "status": "待读", "note": "房间乱成一团，妈妈要求收拾，拉玛讨价还价——“Mess mess mess”反复出现，节奏感强。适合作为“收玩具”的仪式绘本，读完就一起收一次", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 145, "title": "Audrey Wood 韵文大师4册（Child's Play「韵文大师」9册套装中的4本）", "author": "Audrey Wood 文 / Don Wood 绘（Child's Play · 小彼恩）", "lang": "英文", "age": "4-9岁（官方）", "lexile": "无（未查到官方蓝思）", "topic": "语感启蒙（韵文韵律）/ 幻想故事 / 情绪社交 / 认知启蒙", "form": "绘本套装（所持4册 / 全套9册）", "status": "待读", "note": "小彼恩官方名为「Child's Play 韵文大师点读版 9册」，4-9岁，标签：语感启蒙·习惯培养·情感表达；廖彩杏书单推荐。所持4册：Quick as a Cricket（比喻形容词）、The Big Hungry Bear（=The Little Mouse, the Red Ripe Strawberry…，悬念叙事）、Tooth Fairy（换牙）、Presto Change-O（翻页变魔术学反义词）。官方分三阶：第1阶节奏型韵文→第2阶叙事型韵文（The Princess and the Dragon / Scaredy Cats）→第3阶≈牛津树6-7，5岁以上；另5册（Scaredy Cats、Magic Shoelaces、The Princess and the Dragon、Twenty-Four Robbers 及1册待确认）未在照片中", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 146, "title": "The Home Superhero（家里的超级英雄）", "author": "Barbara Cosmico 著绘（Little Book Press 系列）", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思）", "topic": "家庭主题绘本（爸爸/家人是英雄）+ 想象力", "form": "平装绘本（蓝色系，超级英雄装扮）", "status": "待读", "note": "把家里的大人画成超级英雄：披风、飞天、把孩子举高高。是“爸爸/妈妈就是我的英雄”这类家庭情感绘本，适合睡前读，读完可以玩一次举高高", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 147, "title": "The Biggest Cat in the Book（书里最大的猫）", "author": "Ben Lerwill 文 / Mark Chambers 绘 / DK Children（Who's the Biggest? 系列第2册）", "lang": "英文", "age": "3-6岁（官方标至 Kindergarten）", "lexile": "无官方蓝思（未查到）", "topic": "幽默绘本（比较大小·猫）+ 结尾大折页机关", "form": "精装绘本", "status": "待读", "note": "DK「Who's the Biggest?」系列第2册；结尾有 gatefold 大折页惊喜；文字轻、笑点靠对比，猫奴小孩会反复翻", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 148, "title": "A Bigger Digger（更大的挖掘机）", "author": "Brendan Kearney 文 / Em Bruce 绘", "lang": "英文", "age": "3-6岁", "lexile": "", "topic": "故事绘本（工程车·比较大小）+ 韵文", "form": "精装绘本（大幅工程车画面，拟声词多）", "status": "待读", "note": "小男孩的挖掘机不够大，于是一路换更大的——画面里挖掘机越翻越大，最后大到一个夸张的地步。拟声词（dig、rumble、beep）多，工程车迷会反复要求重读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 149, "title": "Craig Smith 幽默欢唱童谣（7册套装）", "author": "Craig Smith / Scott Tulloch（Scholastic · littlebean）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "童谣韵律（可唱儿歌）/ 幽默 / 自然认知", "form": "绘本套装（7册）", "status": "待读", "note": "含 The Wonky Donkey、The Dinky Donkey、Willbee the Bumblebee、My Daddy Ate an Apple、Square Eyes、The Scariest Thing in the Garden、The Birthday Banquet；歌谣自带演唱音频；ISBN 978-981-49-4761-9（单册）", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 150, "title": "A Home for Dog（给狗狗一个家）", "author": "César García 文 / Pep Brocal 绘 / 盖世童书（原版引进）", "lang": "英文", "age": "3-6岁（待核）", "lexile": "无官方蓝思（未查到）", "topic": "故事（寻找归属·友谊）+ 幽默", "form": "薄册平装绘本（小本）", "status": "待读", "note": "封面色：橙红底+穿背带裤的狗；盖世引进，小蝌蚪点读笔可点；适龄与蓝思待封底标识确认", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 151, "title": "Giraffe Is Too Tall for This Book（长颈鹿太高，塞不进这本书）", "author": "DK Ryland 著绘 / Page Street Kids", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "互动绘本（打破书本边界·幽默）+ 认知（大小·高矮）", "form": "精装绘本（横向长幅，书本尺寸本身就是梗）", "status": "待读", "note": "书里的长颈鹿太高，头和脚都“超出书页”，于是整本书在跟孩子玩“怎么把它塞进来”的梗。读的时候可以真的把书竖起来、翻过来，孩子会笑到打滚。和《Do Not Open This Book》《You Choose》一起构成“互动绘本”这一挂", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 152, "title": "Busy Day 职业系列", "author": "Dan Green / Ladybird（小瓢虫）", "lang": "英文", "age": "2-4岁", "lexile": "无", "topic": "认知启蒙（职业）/ 生活场景", "form": "翻翻纸板书", "status": "待读", "note": "Chef / Builder / Doctor 等职业主题", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 153, "title": "Big Steps 系列", "author": "Dr Amanda Gummer / Campbell", "lang": "英文", "age": "2-4岁", "lexile": "无", "topic": "生活习惯（如厕/洗手/睡觉/看牙/穿衣）/ 情绪社交", "form": "推拉·翻翻机关纸板书", "status": "待读", "note": "含 I'm Not Sleepy、No More Nappies 等；官方标 1-5 岁", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 154, "title": "Max at Night（小老鼠马克斯的夜晚）", "author": "Ed Vere 著绘 / Puffin", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思）", "topic": "睡前故事（夜晚·安全感）+ 简约线条画风", "form": "平装绘本（深蓝夜空，粗线条插画）", "status": "待读", "note": "小猫头鹰 Max 睡前要跟月亮说晚安，可月亮不见了，于是它一路爬高去找。画风极简、句子短，是睡前故事里节奏最慢的一本，适合放在睡前最后一本读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 155, "title": "Who Made that Smell? Shh... Don't Tell!（是谁弄出那个味道？嘘——别说！）", "author": "Emma Adams 文 / Mike Byrne 图 / Scholastic（2021）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（未查到）", "topic": "幽默搞笑（想象力·嗅觉·如厕）", "form": "精装绘本 32页", "status": "待读", "note": "早餐时闻到怪味道，小男孩一路脑补是龙、独角兽、美人鱼干的，彩虹独角兽贯穿全书；押韵短句、笑点密集，适合如厕训练期亲子共读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 156, "title": "Spot Goes to School", "author": "Eric Hill/小彼恩", "lang": "英文", "age": "2-4岁", "lexile": "无", "topic": "生活习惯（入园准备）", "form": "翻翻纸板书", "status": "待读", "note": "", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 157, "title": "The Kiss of the Princess（公主的吻）", "author": "Fernando Almena 文 / Ulrike Müller 绘 / 盖世童书（原版引进）", "lang": "英文", "age": "3-6岁（待核）", "lexile": "无官方蓝思（未查到）", "topic": "故事（童话反转·约定与承诺）", "form": "薄册平装绘本（小本）", "status": "待读", "note": "封面色：湖蓝底+戴王冠的青蛙与公主；盖世引进，小蝌蚪点读笔可点；适龄与蓝思待封底标识确认", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 158, "title": "Milton the Mighty / Milton the Monster Snail（弥尔顿）", "author": "（书脊署名待核对）/ Happy Yak", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "故事绘本（小生物·自我认同）", "form": "平装绘本（Happy Yak 系列）", "status": "待读", "note": "Happy Yak 的动物主角绘本，与《Come Out, Chameleon!》同一出版方。具体书名与作者需核对封面细节，先按书脊记录", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 159, "title": "Heath McKenzie 成长系列 6 册（You Don't Have to Like It, You Just Have to Eat It! / Money Doesn't Grow on Trees / Try Your Best, Forget the Rest! / Honesty Is the Best Policy / You Get What You Get and You Don't Get Upset! / Sticks and Stones May Break My Bones But Words (Can Never) Hurt Me!）", "author": "Heath McKenzie 著绘", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "行为与情绪教育（吃饭/金钱/尽力/诚实/不攀比/反言语伤害）+ 谚语式标题 + 幽默", "form": "精装绘本（系列 6 册，统一小幅面）", "status": "待读", "note": "一套用英文俗语当书名的“育儿规训绘本”：不爱吃的也得吃、钱不是树上长出来的、尽力就好别管别人、诚实是上策、得到什么就别闹、话伤人也照样算伤害。标题本身就是金句，读的时候可以直接拿来当家庭口头禅；Heath McKenzie 画风极夸张，笑点多于说教", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 160, "title": "Leonard 系列 4 册（Look Out, Leonard! / Speak Out, Leonard! / I Love You, Leonard! / It's Snowing, Leonard!）", "author": "Jessie James 文 / Tamara Anegon 绘 / DK", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "故事绘本（小老鼠·情绪与表达）+ 季节与天气 + 幽默", "form": "平装绘本 4 册（明黄对话框标题，蓝色小老鼠 Leonard 主角）", "status": "待读", "note": "DK 出品（非盖世书），小蝌蚪笔可点读。四本一套：Look Out, Leonard!（小心点）、Speak Out, Leonard!（大声说出来）、I Love You, Leonard!（我爱你）、It's Snowing, Leonard!（下雪了）。主角是只耳朵乱转的蓝色小老鼠，每句短、拟声词多，2岁半就能跟着念", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小蝌蚪", "pointLabel": "点读"}, {"id": 161, "title": "Mac Wears a Hat（麦克戴帽子）", "author": "Johnson 文 / Reid 绘", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思）", "topic": "幽默绘本（穿戴·自我表达）+ 重复句式", "form": "精装绘本（极简大色块插画）", "status": "待读", "note": "Mac 每天都要戴帽子，戴什么帽子决定他今天是谁——一顶帽子一个身份。重复句式+换装游戏感，适合读完就让孩子挑一顶帽子演一遍", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 162, "title": "Come Out, Come Out, Chameleon!（出来吧，变色龙！）", "author": "Jonty Hawley 著绘 / Happy Yak", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思）", "topic": "互动游戏绘本（躲猫猫·捉迷藏）+ 颜色认知", "form": "平装绘本（荧光色、翻页找隐藏）", "status": "待读", "note": "变色龙躲起来了，每一页都藏在不同颜色的背景里，得靠孩子的眼睛把它找出来——颜色和背景越接近越难找。天然的“找一找”游戏书，正好接上小麦现在爱玩躲猫猫的阶段", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 163, "title": "All Right Already! A Snowy Story（好啦好啦！下雪的故事）", "author": "Jory John 文 / Benji Davies 绘（Bear & Duck 系列）", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "幽默故事（下雪·朋友相处）+ 对话式绘本", "form": "平装绘本（Bear & Duck 系列，冷蓝雪景）", "status": "待读", "note": "熊想睡觉，鸭子非要拉它出去玩雪——重复的对话、戳中“一个想躺一个想玩”的日常。Bear & Duck 系列的固定双人结构，适合亲子分角色演：一个当熊、一个当鸭", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 164, "title": "Animalphabet", "author": "Julia Donaldson 文 / Sharon King-Chai 绘（Two Hoots · Macmillan）", "lang": "英文", "age": "3-7岁", "lexile": "无官方蓝思", "topic": "认知启蒙（字母/动物比较）+ 童谣韵律", "form": "翻翻洞洞绘本（镂空页+折页）", "status": "待读", "note": "字母书但走“谁比谁更多腿/更皱”比较句式，不是单纯 ABC；2019 D&AD 入围、陈伯吹奖", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 165, "title": "Colours, Colours Everywhere", "author": "Julia Donaldson 文 / Sharon King-Chai 绘（Two Hoots · Macmillan）", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思", "topic": "认知启蒙（颜色）+ 幻想故事", "form": "翻翻洞洞绘本（大幅折页）", "status": "待读", "note": "三本同一系列；跟小女孩和蓝树蛙一路认颜色，画面最华丽", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 166, "title": "Counting Creatures", "author": "Julia Donaldson 文 / Sharon King-Chai 绘（Two Hoots · Macmillan）", "lang": "英文", "age": "3-7岁", "lexile": "无官方蓝思", "topic": "认知启蒙（数字/动物宝宝）+ 童谣韵律", "form": "翻翻洞洞绘本（48页+翻页）", "status": "待读", "note": "与 Animalphabet 同一对作者；数每页动物宝宝数量，附找蜘蛛游戏", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 167, "title": "Uh-Oh! My Dragon's Smelly（糟了！我的龙好臭）", "author": "Katie Weaver 著绘 / Weaver & Soylu · A Little Offbeat Publishing", "lang": "英文", "age": "3-7岁", "lexile": "", "topic": "幽默故事（宠物·洗澡）+ 情绪（嫌弃与接纳）", "form": "精装绘本（夸张插画、大字号感叹句）", "status": "待读", "note": "小女孩养了一条龙，可这条龙臭到不行——她想尽办法要给它洗澡，龙却死活不肯。全篇大量拟声词与感叹句（Uh-oh! Smeeeelly!），是“洗澡/卫生习惯”主题里最容易笑出声的一本", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 168, "title": "Oi Dog!", "author": "Kes Gray / Jim Field（Hodder）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "幻想故事 / 幽默 / 童谣韵律", "form": "绘本", "status": "待读", "note": "Oi Frog 系列同作者", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 169, "title": "Bluey: Super Story Set", "author": "Ladybird（Bluey 布鲁伊）", "lang": "英文", "age": "3-6岁", "lexile": "无", "topic": "动画IP故事 / 情绪社交（亲子游戏/想象力）", "form": "点读故事套装", "status": "待读", "note": "封面明确标注 TALKING PEN EDITION；小彼恩点读款", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 170, "title": "Peppa Pig Reader's Theatre（小猪佩奇口语剧场）", "author": "Ladybird / Littlebean（小猪佩奇）", "lang": "英文", "age": "3-6岁", "lexile": "无", "topic": "口语表达（角色扮演/对话）/ 动画IP故事", "form": "点读剧场套装", "status": "待读", "note": "封标 3+ AGES；以小猪佩奇对话剧本形式练口语；小彼恩点读款", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 171, "title": "Monsters at Christmas（怪兽过圣诞）", "author": "Laura Baker 文 / Nina Dzyvulska 绘 / Happy Yak（Frances Lincoln）", "lang": "英文", "age": "2-5岁", "lexile": "无官方蓝思（未查到）", "topic": "节日（圣诞）+ 韵文（重复句式）", "form": "精装绘本 32页", "status": "待读", "note": "同系列：怪兽们准备圣诞，装饰、礼物、派对一路热闹；同系列全套4册，另缺《Monsters at Bedtime》", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 172, "title": "Monsters at School（怪兽上学）", "author": "Laura Baker 文 / Nina Dzyvulska 绘 / Happy Yak（Frances Lincoln）", "lang": "英文", "age": "2-5岁", "lexile": "无官方蓝思（未查到）", "topic": "校园生活启蒙 + 韵文（重复句式）", "form": "精装绘本 32页", "status": "待读", "note": "同系列：怪兽第一天上学的慌乱与适应，可用于入园前铺垫", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 173, "title": "Monsters in Trucks（怪兽开卡车）", "author": "Laura Baker 文 / Nina Dzyvulska 绘 / Happy Yak（Frances Lincoln）", "lang": "英文", "age": "2-5岁", "lexile": "无官方蓝思（未查到）", "topic": "认知启蒙（交通工具）+ 韵文（重复句式）", "form": "精装绘本 32页", "status": "待读", "note": "混乱的怪物城系列：各式怪兽开着卡车满街跑，通篇押韵，每页藏小怪兽可做找物", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 174, "title": "Super Duper Penguin Slide（超级企鹅滑梯）", "author": "Leonie Lord 著绘 / Walker Books", "lang": "英文", "age": "3-6岁", "lexile": "无官方蓝思（未查到）", "topic": "故事绘本（幽默·冰雪·冒险）", "form": "精装绘本", "status": "待读", "note": "小企鹅们坐上超长冰滑梯一路冲下山，重复句式+拟声词，朗读感强；简单过去式与介词短语，适合磨耳朵和亲子共读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 175, "title": "How It Works: Rocket", "author": "Little Tiger", "lang": "英文", "age": "3-6岁", "lexile": "无", "topic": "科普通识（机械/火箭原理）", "form": "机关科普纸板书", "status": "待读", "note": "原表 roket 应为 Rocket", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 176, "title": "小怪物双语故事精选集", "author": "Mercer Mayer 原作 / 北京联合出版公司", "lang": "双语（中英）", "age": "3-6岁", "lexile": "无", "topic": "生活习惯 / 情绪社交", "form": "双语绘本合集", "status": "待读", "note": "Little Critter 系列；无点读笔版本，每册/盒配扫码音频，用手机扫即可听；和点读笔体系不同，音频入口在书上二维码", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 177, "title": "Ten Little Elves", "author": "Mike Brownlow / Simon Rickerty（Orchard）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "童谣韵律（数数儿歌）/ 幻想故事", "form": "绘本", "status": "待读", "note": "同系列", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 178, "title": "Ten Little Monsters", "author": "Mike Brownlow / Simon Rickerty（Orchard）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "童谣韵律（数数儿歌）/ 幽默", "form": "绘本", "status": "待读", "note": "原表 moster 应为 Monsters", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 179, "title": "Ten Little Pumpkins", "author": "Mike Brownlow / Simon Rickerty（Orchard）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "童谣韵律（数数儿歌）/ 节日", "form": "绘本", "status": "待读", "note": "同系列", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 180, "title": "The Duckling Gets a Cookie!?（小鸭子要饼干？！）", "author": "Mo Willems 著绘 / Hyperion（Pigeon 系列）", "lang": "英文", "age": "2-5岁", "lexile": "无（未查到官方蓝思）", "topic": "幽默故事（争宠·礼貌）+ 对话式绘本（角色轮流说话）", "form": "精装绘本（Pigeon 系列，对话气泡排版）", "status": "待读", "note": "Mo Willems 鸽子系列的一本，全书只有小鸭子和鸽子的对话：小鸭子只是礼貌地说“请”，就拿到了饼干，鸽子气到崩溃。句子短、全是对白，最适合练“轮流说话”的亲子角色扮演——一人一句把书演出来", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 181, "title": "Making the Moose Out of Life（让驼鹿活出个样来）", "author": "Nicholas Oldland 著绘 / Kids Can Press", "lang": "英文", "age": "3-7岁", "lexile": "无（未查到官方蓝思）", "topic": "成长故事（走出舒适区·勇气）+ 情绪社交", "form": "精装绘本（Life in the Wild 系列）", "status": "待读", "note": "“Life in the Wild”系列（驼鹿、熊、河狸等）。这本讲一头什么都懒得试的驼鹿，终于决定离开舒适区去冒险。文字少、道理直白，是典型的“性格养成型”绘本；同系列还有 Big Bear Hug、Up the Creek 等", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 182, "title": "My Body, My Voice（我的身体，我的声音）", "author": "Nicki Esler Gill 文 / Inge Daniels 绘", "lang": "英文", "age": "3-7岁", "lexile": "无（未查到官方蓝思）", "topic": "成长教育（身体自主权·自我保护）+ 情绪表达", "form": "精装绘本（图文并排、短句宣言式文本）", "status": "待读", "note": "讲“我的身体属于我、我的声音要被我听见”：可以说不、可以拒绝不舒服的触碰、可以为自己发声。是身体安全教育的入门绘本，配合共读时的“身体部位指认”一起用最有效", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 183, "title": "Once There Was a Boy", "author": "Oliver Jeffers", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "幻想故事 / 情绪社交（勇气·友情）", "form": "纸板书套装", "status": "待读", "note": "含 How to Catch a Star 等 4 册", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 184, "title": "We Are Love", "author": "Patricia Hegarty / Thomas Elliott", "lang": "英文", "age": "1-4岁", "lexile": "无", "topic": "情绪社交（亲情）/ 童谣韵律", "form": "精装绘本", "status": "待读", "note": "短句押韵，适合共读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 185, "title": "筑桥《窥见自然》洞洞书 4册（Bee / Bugs / Sea / Moon）", "author": "Patricia Hegarty 文 / Britta Teckentrup 绘（Little Tiger Press · 筑桥童书）", "lang": "英文", "age": "1-5岁（原版 Peek-Through 系列口径，单册标 3-6岁）", "lexile": "无（该系列无官方蓝思）", "topic": "认知科普（自然/生命周期）+ 童谣韵律", "form": "精装洞洞绘本（镂空peek-through叠页，4册）", "status": "待读", "note": "原版为 7 册系列（Tree/Bee/Bugs/Moon/Sea/Home/Family），筑桥引进 4 册：Bee（蜜蜂授粉蜂巢）、Bugs（瓢虫蚂蚁蜻蜓）、Sea（珊瑚礁与海洋生物）、Moon（月相与夜行动物，最适合睡前）。整页镂空与下一页画面联动，韵文短句、低信息密度，属于“能听能摸”的审美型科普，不是信息型科普", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 186, "title": "The Mouse Who Ate the Moon（吃掉月亮的小老鼠）", "author": "Petr Horáček 著绘 / Walker Books（英版）· Candlewick（美版）", "lang": "英文", "age": "2-4岁", "lexile": "无官方蓝思（未查到）", "topic": "睡前·月夜幻想 + 洞洞互动", "form": "洞洞书（peep-through）", "status": "待读", "note": "小老鼠以为月亮是香蕉，咬了一口之后月亮少了一块；诗意睡前故事", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 187, "title": "The Mouse Who Reached the Sky（够到天空的小老鼠）", "author": "Petr Horáček 著绘 / Walker Books（英版）· Candlewick（美版）", "lang": "英文", "age": "2-4岁", "lexile": "无官方蓝思（未查到）", "topic": "想象（追梦·仰望天空）+ 翻翻互动", "form": "翻翻书（lift-the-flap）", "status": "待读", "note": "小老鼠想把天上的东西摘下来，伙伴们一起想办法，讲想象力与合作", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 188, "title": "The Mouse Who Wasn't Scared（不怕的小老鼠）", "author": "Petr Horáček 著绘 / Walker Books（英版）· Candlewick（美版）", "lang": "英文", "age": "2-4岁", "lexile": "无官方蓝思（未查到）", "topic": "情绪社交（克服恐惧）+ 翻翻互动", "form": "翻翻书（lift-the-flap）", "status": "待读", "note": "小老鼠一路问森林动物“你怕不怕”，结尾反转幽默；翻翻页藏在每一页", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 189, "title": "My Doctor's Visit", "author": "Rose Harkness 文 / Sophie Kent 图（Autumn Publishing）", "lang": "英文", "age": "2-5岁（书标3+）", "lexile": "无", "topic": "生活习惯（就医/看医生）/ 情绪社交（勇气）", "form": "贴纸奖励互动书", "status": "待读", "note": "与 The Bedtime Book、The Boo-Boo Book 同系列（Autumn Publishing）；含36枚可重复奖励贴纸（I did it / I was brave）；封底标3+（小零件警示）", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 190, "title": "The Bedtime Book", "author": "Rose Harkness 文 / Sophie Kent 图（Autumn Publishing）", "lang": "英文", "age": "2-5岁（书标3+）", "lexile": "无", "topic": "生活习惯（睡前流程）/ 情绪社交", "form": "贴纸奖励互动书", "status": "待读", "note": "ISBN 978-1-83544-730-7；Autumn Publishing（Igloo/Bonnier 旗下）2025年版；含50枚可重复贴纸+奖励表；同系列另有 The Boo-Boo Book、My Doctor's Visit；封底标3+（小零件警示，非阅读难度）", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 191, "title": "The Boo-Boo Book", "author": "Rose Harkness 文 / Sophie Kent 图（Autumn Publishing）", "lang": "英文", "age": "2-5岁（书标3+）", "lexile": "无", "topic": "情绪社交（受伤安慰/勇气）/ 生活习惯", "form": "贴纸奖励互动书", "status": "待读", "note": "与 The Bedtime Book、My Doctor's Visit 同系列（Autumn Publishing）；含36枚可重复“创可贴”贴纸；封底标3+（小零件警示）", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 192, "title": "Mother Goose Bruce（鹅妈妈布鲁斯）", "author": "Ryan T. Higgins 著绘 / Disney · Hyperion", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "幽默故事（反差萌·父职）+ 动物故事", "form": "精装绘本（Bruce 系列）", "status": "待读", "note": "Bruce 系列（一只脾气坏但心软的熊）。这本讲 Bruce 阴差阳错当了一群小鹅/小鸭的“妈妈”，反差感是全书笑点。句式不长但对话多，适合 3 岁后当睡前故事；同系列还有 Hotel Bruce、Bruce's Big Move 等", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 193, "title": "Safety Adventures 聪明宝宝懂安全（12册套装）", "author": "Story by Min-jeong Kim / Illustrated by Hee-jae Yoon（AiFriend · 小彼恩 littlebean）", "lang": "双语（中英）", "age": "2-6岁", "lexile": "无（未查到官方蓝思）", "topic": "安全教育 / 自我保护（用药·防拐·火灾·用电）", "form": "点读绘本套装（12册，中英双语可切换）", "status": "待读", "note": "韩版原书为 AI Friend《Safety Stories》系列（2-6岁、13册、24页/册、185×185mm），小彼恩引进做双语点读版12册；图中为其中《Play Safely · Playground Safety 游乐园安全》；每册后附安全小游戏", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 194, "title": "Grumpy Monkey Party Time!（暴躁小猴子·派对时间）", "author": "Suzanne Lang 文 / Max Lang 绘 / Random House Studio", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "情绪绘本（社交焦虑·不合群）+ 幽默", "form": "精装绘本（Grumpy Monkey 系列，蓝封面）", "status": "待读", "note": "这本讲“所有人都开心，只有我不开心”的社交压力：派对上大家都在跳舞，吉姆不想跳又怕被说不合群。适合预演“不想参加集体活动也可以说出来”，小麦3岁后进托班/兴趣班时很有用", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 195, "title": "Grumpy Monkey: Father's Day Fuss（暴躁小猴子·父亲节风波）", "author": "Suzanne Lang 文 / Max Lang 绘 / Random House Studio", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "幽默故事（情绪管理·父子）+ 节日主题（父亲节）", "form": "精装绘本（附贴纸，Grumpy Monkey 系列）", "status": "待读", "note": "《Grumpy Monkey》系列的节日特辑：小猴子想在父亲节给爸爸一个完美惊喜，结果一路搞砸、越帮越忙。全书大量“Grumpy”式吐槽对白，情绪词多（grumpy/fuss/huffy），适合3岁后做情绪命名练习", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 196, "title": "Grumpy Monkey（暴躁小猴子）", "author": "Suzanne Lang 文 / Max Lang 绘 / Random House Studio", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "情绪绘本（坏情绪·接纳）+ 幽默", "form": "精装绘本（Grumpy Monkey 系列首册，红封面）", "status": "待读", "note": "系列第一本，也是最有名的一本：吉姆·潘金一觉醒来就是“grumpy”，朋友们轮番哄他开心，他却越哄越烦，最后发现坏情绪也不用急着赶走。全书反复出现 grumpy/happy/sad/frustrated 等情绪词，是“情绪命名”最标准的一本教材", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 197, "title": "The Ladybug Without Spots（没有斑点的小瓢虫）", "author": "Tina Vallès 文 / Joan Negrescolor 绘 / 盖世童书（原版引进）", "lang": "英文", "age": "3-6岁（待核）", "lexile": "无官方蓝思（未查到）", "topic": "故事（自我认同·接纳差异）+ 昆虫认知", "form": "薄册平装绘本（小本）", "status": "待读", "note": "封面色：墨绿底+红色瓢虫；盖世引进，小蝌蚪点读笔可点；适龄与蓝思待封底标识确认", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 198, "title": "The Digits 系列 3 册（Double the Fun / The Perfect Number / Odds vs Evens）", "author": "Tony Bradman 文 / Sr. Sánchez 绘（The Digits 系列）", "lang": "英文", "age": "4-7岁", "lexile": "无（未查到官方蓝思）", "topic": "数学启蒙绘本（倍数/奇数偶数/数字规律）+ 幽默", "form": "平装绘本（3册，漫画感插画）", "status": "待读", "note": "把数字拟人成一群小人：一个数字能翻倍变两个，奇数和偶数分成两队打擂台，还有“完美数字”的角逐。概念偏4岁后，但这套的笑点在于“数字也会吵架”，可以留到中班再正式讲数学", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 199, "title": "Q Play 奇问妙想国", "author": "TunTun英语（北京语言大学出版社 / 小彼恩）", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "口语表达（提问/回答）/ 认知启蒙", "form": "点读绘本套装", "status": "待读", "note": "彩虹兔古力系列延伸；“Q”即 question，围绕一个个问题展开，练问答句", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 200, "title": "lift-the-flap Very First Questions and Answers", "author": "Usborne Very First Questions and Answers", "lang": "英文", "age": "2-5岁", "lexile": "无", "topic": "科普通识（Usborne 问答系列）", "form": "翻翻科普书", "status": "待读", "note": "含 What is the Moon? / What are Germs? 等册", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 201, "title": "Usborne Little First Stickers 贴纸书 4册（Travel / Dinosaurs / Shops / Sparkly Summer）", "author": "Usborne 出版 / Jean Claude 等绘", "lang": "英文", "age": "3-6岁（贴纸书官方 3+）", "lexile": "无（贴纸活动书不标蓝思）", "topic": "游戏活动（贴纸·专注力）+ 认知（交通·恐龙·商店·夏日）", "form": "贴纸活动书（每册 150+ 贴纸）", "status": "待用", "note": "消耗品，不占阅读主线。Travel 是最场景化的一本（公交、火车、飞机、轮船），可配合交通工具主题认知；Sparkly Summer 带亮片贴纸。按“先 Travel 后 Shops”的顺序玩，图少词少，主要练手部精细动作", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 202, "title": "小老鼠奇奇系列（2册：小老鼠奇奇去海边 / 小老鼠奇奇去外婆家）", "author": "[日]末崎茂树 文/图 宋三 译 / 河北教育出版社（启发精选世界优秀畅销绘本）", "lang": "中文", "age": "3-6岁", "lexile": "无（中文绘本，不适用蓝思）", "topic": "成长故事（勇气·独立·亲情）", "form": "精装绘本（含超长折页）", "status": "待读", "note": "《去外婆家》用长折页呈现奇奇第一次独自出门的路，讲勇敢与求助；《去海边》写海边玩耍的小冒险，画风温暖细腻，适合3岁后亲子共读", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 203, "title": "Little Bean 小彼恩", "author": "[英]约翰·华莱士 著/绘 喻旭东 译 / 北京语言大学出版社", "lang": "英文", "age": "2-4岁", "lexile": "无官方蓝思（未查到）", "topic": "故事绘本（日常·温馨·低幼）", "form": "精装绘本", "status": "待读", "note": "句式极短、文字量少，画面温柔，适合2岁起英文启蒙第一本；封面英文名+中文名对照，具体是否双语内文与是否支持点读笔待核", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 204, "title": "这是谁的家？12种动物居所大探秘", "author": "[英]马格纳斯·维特曼 著/绘 刘宣谷 译 / 上海文化出版社（鹦鹉螺）", "lang": "中文", "age": "3-7岁", "lexile": "无（中文科普绘本，不适用蓝思）", "topic": "自然科普（动物巢穴·剖面图·世界地理）", "form": "精装绘本（大开本）", "status": "待读", "note": "小河狸和热气球上的秋田犬环游六大洲，看12种动物的家：剖面图展示洞穴、鸟巢、蜂巢内部构造；儿歌式韵律文字+博物知识，画面细节极多", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 205, "title": "彩虹兔·古力小超人（Gyuri the Superhero）12册", "author": "[韩]TUNTUN英语 / 小彼恩（北京语言大学出版社）", "lang": "英文", "age": "1.5-4岁（官方标2-6）", "lexile": "无", "topic": "情绪社交（勇气/鼓励）/ 童谣韵律（每本配一首歌）/ 生活场景", "form": "点读绘本套装（12册）", "status": "待读", "note": "彩虹兔系列；ISBN 9787561958452；围绕5个朋友日常（洗澡、捉迷藏、做沙堡、采摘等），遇困难就呼唤小超人Gyuri帮忙；每本配儿歌+舞蹈视频；句长3-4词、重复度高，是童谣过渡到故事的第一套；另有《古力与朋友们》12册为进阶第二套", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 206, "title": "Happy Days: Speak & Play Board Games（口语剧场配套桌游）", "author": "littlebean", "lang": "英文", "age": "3-6岁", "lexile": "无", "topic": "口语表达（角色扮演/游戏互动）/ 亲子游戏", "form": "桌游套装（非书）", "status": "待读", "note": "6 in 1；封标 3+ AGES、2-4 players；与“Peppa Pig Reader's Theatre 口语剧场”配套", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 207, "title": "我们轮流玩", "author": "乐智小天地（巧虎）系列 / 中国中福会出版社", "lang": "中文", "age": "1.5-3岁（家长手写标注 4 月份期号）", "lexile": "无（中文书不适用蓝思）", "topic": "习惯养成（轮流·分享·规则）+ 社交情绪", "form": "薄册绘本（16-24页，配套亲子游戏页）", "status": "在用", "note": "巧虎行为习惯类小册，主题是荡秋千要轮流排队。句式短、重复多，适合 1 岁半后开始建立“等待、轮流”的规则意识，小麦现在可以当图画指认先用", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 208, "title": "1-4岁德国幼儿专注力培养（全12册：交替的白天与黑夜/森林里的奇遇/川流不息的马路/工程基地的冒险/妙趣横生的花园/流转的四季/疾驰的应急车辆/丰收的农场/可爱的动物/繁忙的建筑工地/奔跑的交通工具/充实的一天）", "author": "德国原版引进（出版方待核）", "lang": "中文", "age": "1-4岁", "lexile": "无（中文专注力训练绘本，不适用蓝思）", "topic": "专注力训练（全景找图·认知·生活场景）", "form": "精装绘本（12册小开本）", "status": "待读", "note": "每页整幅高密度场景图、几乎无文字，靠找物练观察与专注；主题覆盖农场、工地、马路、应急车辆等男宝女宝都爱的场景，1岁多就能玩找一找", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 209, "title": "东方童谣", "author": "熊亮//小彼恩", "lang": "中文", "age": "1-4岁", "lexile": "无", "topic": "童谣韵律", "form": "精装绘本", "status": "待读", "note": "中文童谣合集，朗读磨语感", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 210, "title": "小年兽来吃团圆饭（中国神兽系列）", "author": "狐狸家 著 / 四川少年儿童出版社", "lang": "中文", "age": "3-6岁", "lexile": "无（民俗故事绘本，不适用蓝思）", "topic": "民俗故事（春节·团圆·神兽）", "form": "精装绘本", "status": "待读", "note": "除夕团圆饭主题：小年兽下山来吃年夜饭，画面里穿插鱼、饺子、汤圆、火锅等年菜；狐狸家“中国神兽”系列，讲年的来历与团圆，节令前后读最应景", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 211, "title": "麒麟送来小妹妹（中国神兽系列）", "author": "狐狸家 著 / 四川少年儿童出版社", "lang": "中文", "age": "3-6岁", "lexile": "无（民俗故事绘本，不适用蓝思）", "topic": "民俗故事（神兽·二胎·手足）", "form": "精装绘本", "status": "待读", "note": "以神兽麒麟送子起头，讲家里多了一个小妹妹之后的相处与情绪；适合二胎家庭在“小麦要当姐姐/有妹妹”阶段亲子共读，缓解落差感", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 212, "title": "Little Match 小火柴 Level 1（10册）", "author": "盖世童书（Poodle Doodle 编辑，22位插画师分册绘制）", "lang": "英文", "age": "3-6岁（整套官方口径 3-10岁，Level 1 为入门级）", "lexile": "无（盖世分级未标蓝思）", "topic": "寓言童话（认知善恶·智慧）+ 情绪社交（诚实·勤劳）", "form": "轻量分级绘本（10册/级，多重翻页设计）", "status": "待读", "note": "全系列 3 级各 10 册共 30 册。Level 1 单本词汇 150-300，本级累计约 400 词。十册：Red Riding Hood（小红帽）/ The Tortoise and the Hare（龟兔赛跑）/ The Thirsty Crow（口渴的乌鸦）/ The Fox and the Stork（狐狸与鹳）/ The Enormous Turnip（拔萝卜）/ Town Mouse and Country Mouse（城里鼠与乡下鼠）/ Stone Soup（石头汤）/ The Three Pigs（三只小猪）/ The Goose That Laid the Golden Eggs（下金蛋的鹅）/ The Little Red Hen（小红母鸡）。多为伊索寓言，情节短、重复句式多，最适合第一次听英文故事", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 213, "title": "脏脏书：关于我身体的一切（All About My Body）", "author": "盖世童书 / Poodle Doodle Press", "lang": "英文", "age": "2-6岁", "lexile": "无", "topic": "科普通识（人体/生理现象）/ 生活习惯（卫生习惯）/ 幽默", "form": "机关互动书（20册套装）", "status": "待读", "note": "ISBN 9781800631540；20个主题：屎尿屁、耳屎、鼻涕、头皮屑、口水、蛀牙、寄生虫、肚脐、放屁等；官方适龄2岁+，主打3-6岁敏感期；600+词汇，故事+科普；支持小怪兽点读笔", "c": "yellow", "cl": "🟡 2-4岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 214, "title": "海洋王国（长隆动物学院·揭秘小世界）", "author": "长隆动物学院 / 长隆出品", "lang": "中文", "age": "2-6岁", "lexile": "无（中文书不适用蓝思）", "topic": "自然科普（海洋生物）+ 认知启蒙", "form": "翻翻立体书（创意翻页，手绘图）", "status": "待读", "note": "长隆自己出的海洋主题翻翻书，手绘图+翻页机关，讲海洋生物种类。翻页适合 1 岁半后小手操作，翻坏风险高，建议共读时大人陪着翻", "c": "yellow", "cl": "🟡 2-4岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 215, "title": "Fly Guy Mega Set（苍蝇小子大套装，20册）", "author": "Tedd Arnold（Scholastic · Hi! Reading · 小彼恩）", "lang": "英文", "age": "4-7岁", "lexile": "无（合集未单列；单册约 170L–300L，GRL I–J）", "topic": "幻想故事（幽默）+ 情绪社交（友情）", "form": "桥梁书套装（20册）", "status": "待读", "note": "小彼恩点读版共20册；Hi! Fly Guy 为系列第1本，句子短、每页一两行、图占大半，Theodor Seuss Geisel Honor；读完刚好接🟣初级章节", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 216, "title": "The Big Orange Book of Beginner Books（苏斯博士6合1）", "author": "Dr. Seuss 等（Beginner Books / Random House）", "lang": "英文", "age": "3-7岁", "lexile": "无（合集未单列，单册多为 BR–200L）", "topic": "幻想故事（幽默）+ 童谣韵律", "form": "合集精装（240页，6个故事）", "status": "待读", "note": "含 The Shape of Me and Other Stuff / Ten Apples Up On Top! / Marvin K. Mooney Will You Please Go Now! / Hooper Humperdink…? Not Him! / In a People House / Because a Little Bug Went Ka-Choo!；Beginner Books 为“自己读”设计，字少韵脚强", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 217, "title": "Blown Away!（被吹走了！）", "author": "Alessandro Montagnana 著绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（风·旅程）+ 幽默", "form": "平装绘本（蓝绿底，狗乘热气球）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系）。一阵风把主角和热气球一起吹走，一路飘过田野与海；文字极少、几乎全画面叙事，适合2岁半以后自己翻讲", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 218, "title": "The Heart of Winter（冬天的心）", "author": "Alessandro Montagnana 著绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（冬天·温暖·寻找）+ 无对话画面叙事", "form": "平装绘本（雪景，红白强对比、无字为主）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 大雪里一只红围巾的动物独自走在雪中，几乎无文字、全靠画面讲“冬天里最暖的东西是什么”。是无字/少字绘本里画面叙事最完整的一本，适合让孩子自己讲一遍", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 219, "title": "Be Thankful for Trees（感谢树：树与我们生活的种种关联）·心智麦田系列", "author": "Harriet Ziefert 文 / Brian Fitzgerald 绘 / 盖世·心之麦田系列（原版 Red Comet Press）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "科普（自然科学·树木·生态）+ 环保意识 + 人文（乐器·造纸·造船）", "form": "精装科普绘本（圆形插图式版面）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），属该系列第？辑：官网未公开完整分辑目录，全书按“辑”发售（每辑10册，目前至第17辑，约170册），每辑附一张书目表逐册标注蓝思值与阅读年龄。本册蓝思按系列区间记，单册官方值待核对。 内容讲树与人：考拉、吉他与大提琴、造纸、造船，和《Water》同系列双本对读最佳", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 220, "title": "Be Thankful for Water（感谢水：水如何滋养我们的星球）·心智麦田系列", "author": "Harriet Ziefert 文 / Brian Fitzgerald 绘 / 盖世·心之麦田系列（原版 Red Comet Press）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "科普（自然科学·水循环·生态）+ 环保意识", "form": "精装科普绘本（圆形插图式版面）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），属该系列第？辑：官网未公开完整分辑目录，全书按“辑”发售（每辑10册，目前至第17辑，约170册），每辑附一张书目表逐册标注蓝思值与阅读年龄。本册蓝思按系列区间记，单册官方值待核对。 内容用圆形画面串起水的多重角色（海洋、洗澡、灌溉、饮用），短句+重复句式，适合4岁后做看图找细节共读", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 221, "title": "Arthur and the What-Ifs（亚瑟和“万一”们）", "author": "Heath McKenzie 著绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "情绪绘本（焦虑·灾难化想象）+ 音乐", "form": "平装绘本（亮黄底，小提琴狗与乐队动物）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 亚瑟脑子里全是“万一……怎么办”，直到音乐把这些担忧变成旋律。焦虑小孩的镜子书，也是 Heath McKenzie 那种密集画风", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 222, "title": "A Pig, a Fox, and a Box（小猪、狐狸和一个盒子）", "author": "Jonathan Fenske 著绘 / 子言 译（Penguin Young Readers Level 2 · 湖南少年儿童出版社 · 小彼恩）", "lang": "双语（中英）", "age": "4-6岁（Penguin 标 6-7 / 盒标 K-2）", "lexile": "BR210L（约210L，AR 1.3 / GRL I）", "topic": "幻想故事（幽默）/ 情绪社交（友情）", "form": "点读桥梁绘本（32页，Level 2 分级读物）", "status": "待读", "note": "2016 苏斯博士银奖（Theodor Seuss Geisel Honor）；三则小猪狐狸短故事，句子极短、大量对话气泡，是“从绘本到自读”的第一级；原版 Level 2 属“进展型读者”", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 223, "title": "The Hidden Talent of Phoenix Fox（火狐的隐藏才艺）", "author": "Kristina Radkevich 著绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（才艺·自信·被看见）+ 幽默", "form": "平装绘本（黄绿田园调，夸张舞姿）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 火狐一直觉得自己没什么特长，直到一次意外让大家发现它真正的本事——一本讲“每个人都有隐藏才艺”的书，画面里狐狸穿着小丑裤踩轮滑，笑点很足", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 224, "title": "Inkredible Little Octopus（会喷墨的小章鱼）·心智麦田系列", "author": "Laurent Cardon 著绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（反暴力·勇气）+ 海洋生物（章鱼）", "form": "精装绘本（文字少、插画主导叙事）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），属该系列第？辑：官网未公开完整分辑目录，全书按“辑”发售（每辑10册，目前至第17辑，约170册），每辑附一张书目表逐册标注蓝思值与阅读年龄。本册蓝思按系列区间记，单册官方值待核对。 巴西童书作者 Laurent Cardon 作品，书名 Inkredible = Ink + Incredible 的谐音。讲一只小章鱼在深海里的生存法则，用极少文字+插画讲“如何不被欺负”，被多家媒体评为年度最佳。文字量小但主题偏社会性，适合4岁后亲子讨论", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 225, "title": "Wesley and Me（我和韦斯利）", "author": "Mave Le Coati 文 / Baptiste Amsallem 绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（友谊·陪伴）+ 情绪", "form": "平装绘本（淡黄+淡蓝双色，手绘线条）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 用第一人称讲“我和韦斯利”两个人怎么在一起玩、怎么闹别扭又和好，句子短、主语反复，适合练“I/me/my”这类代词", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 226, "title": "Fair Shares（公平分配）", "author": "Pippa Goodhart 文 / Anna Doherty 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "社会情绪绘本（公平·分享·协商）+ 数学启蒙（分配）", "form": "平装绘本（浅蓝底，兔与熊跳起）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 兔子和熊分东西，怎么切才公平？把“分享”从口号变成可以算的题：一半、更多、一样多", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 227, "title": "What's Your Craft? / What's Your Job?（你的手艺是什么？/ 你的工作是什么？）2 册", "author": "Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "职业认知（剖面图式百科）+ 场景词汇量大", "form": "平装绘本（2册，整页建筑剖面，几十个职业同框）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。 一本讲传统手艺（帽子匠、面包师、装订匠、木雕匠、补锅匠），一本讲现代职业（导演、牙医、花艺师、消防员、宇航员）。整页是一栋楼的剖面图，同框几十个人在做不同的事——最典型的“找一找+职业词汇”书，适合4岁后慢慢翻", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 228, "title": "Do I Really Have to Go to School?（The Diary of Ash the Explorer）（我非得去上学吗？）", "author": "Özlem Kocayiğit 文 / Yasir Aşık 绘 / Poodle Doodle Press（盖世童书引进）", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "故事绘本（上学焦虑·冒险日记）+ 幽默", "form": "平装绘本（白底，手绘日记体排版）", "status": "待读", "note": "盖世童书「心智麦田」系列（英文原版绘本，Poodle Doodle Press 出版体系），按“辑”发售（每辑10册，目前至第17辑），每辑附书目表逐册标蓝思+阅读年龄；本册具体辑次官网未公开，蓝思按系列区间记。已核内页：Orkun Kocabıyıkoğlu 文 / Yasir Atış 绘，日记体，主角“探险家小艾什”，讲暑假出游见亲戚、再到“非得上学吗”的发问；与第16辑《The Curse of the Mummy》是两本不同的书，不必合并。", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 229, "title": "Truly Odd Jobs（奇怪的工作）", "author": "Štěpánka Sekaninová 文 / Adam Wolf 绘", "lang": "英文", "age": "4-7岁（盖世官方口径 4岁+；早期辑标 3-6岁）", "lexile": "210-600L（盖世官方标注系列区间：210L–600L；单册值未公布，按区间排序）", "topic": "职业认知（奇趣职业）+ 科普百科", "form": "精装绘本（白底+黄书脊，小丑/潜水员/企鹅装同框）", "status": "待读", "note": "盖世童书「心智麦田」批次（英文原版绘本，Poodle Doodle Press 出版体系），按辑发售（每辑10册）。本册为本轮补录的漏条目，具体辑次与是否同系列官网未公开，蓝思暂按系列区间记。 世界上最离奇的职业：职业鼓掌人、蚊虫研究员、试睡员……信息量比一般绘本大，4岁后当百科翻", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 230, "title": "See the Cat: Three Stories About a Dog（看那只猫·三个关于狗的故事）", "author": "David LaRochelle 文 / Mike Wohnoutka 绘（Candlewick）", "lang": "英文", "age": "4-8岁（官方）", "lexile": "AD260L（AR 1.2 / F&P G）", "topic": "幻想故事（幽默·打破第四面墙）+ 情绪社交（自我认同）", "form": "精装早期读本（64页，含3个短篇）", "status": "待读", "note": "系列第1册；2021 Theodor Seuss Geisel 金奖；主角小狗 Max 全程和旁白抬杠“我是狗不是猫”；AD 因成人伴读设计", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 231, "title": "See the Dog: Three Stories About a Cat（看那只狗·三个关于猫的故事）", "author": "David LaRochelle 文 / Mike Wohnoutka 绘（Candlewick）", "lang": "英文", "age": "4-8岁（官方）", "lexile": "无官方蓝思（AR 1.3 / F&P G）", "topic": "幻想故事（幽默·角色互换）+ 情绪社交（责任·机智）", "form": "精装早期读本（64页，含3个短篇）", "status": "待读", "note": "系列第2册（2021）；小狗 Max 生病，小猫 Baby Cakes 顶班挖洞、捡树枝、护羊，全程偷懒耍小聪明", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 232, "title": "See the Ghost: Three Stories About Things You Cannot See（看那个幽灵·三个关于看不见的东西的故事）", "author": "David LaRochelle 文 / Mike Wohnoutka 绘（Candlewick）", "lang": "英文", "age": "4-8岁（官方）", "lexile": "无官方蓝思（AR 1.5 / F&P L）", "topic": "幻想故事（幽默·想象力）+ 认知启蒙（看不见的事物：幽灵/风/小精灵）", "form": "精装早期读本（64页，含3个短篇）", "status": "待读", "note": "系列第3册（2023），难度略高于前两本（F&P L）；无恐怖画面，猫狗野餐遇上幽灵、风和小精灵", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 233, "title": "The Little Butterfly That Could（小彼恩点读版第2册）", "author": "Ross Burach 著绘（Scholastic · 小彼恩）", "lang": "英文", "age": "4-8岁（官方）", "lexile": "AD360L（AR 1.9 / GRL K）", "topic": "幻想故事（幽默）+ 情绪社交（坚持）+ 认知科普（迁徙）", "form": "绘本（40页）", "status": "待读", "note": "蝴蝶系列第2本（2021）；迁飞 200 英里，“What if I can’t?” 是主线，结尾 fly, fly again", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 234, "title": "Make Way for Butterfly（小彼恩点读版第3册）", "author": "Ross Burach 著绘（Scholastic · 小彼恩）", "lang": "英文", "age": "4-8岁（官方）", "lexile": "无（未查到官方蓝思）", "topic": "幻想故事（幽默）+ 认知科普（授粉）+ 情绪社交（自我接纳）", "form": "绘本（对话气泡体）", "status": "待读", "note": "小彼恩点读版全 3 册，此为第3册/终章：蝴蝶羡慕蜜蜂“浑身黏毛黏满花粉”，最后学会“不必像蜜蜂，做蝴蝶就好”。⚠️若第3册封面是深蓝夜空（Goodnight, Butterfly），告诉我我替换", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 235, "title": "The Very Impatient Caterpillar（小彼恩点读版第1册）", "author": "Ross Burach 著绘（Scholastic · 小彼恩）", "lang": "英文", "age": "4-8岁（官方）", "lexile": "无（未查到官方蓝思）", "topic": "幻想故事（幽默）+ 认知科普（变态发育）", "form": "绘本（对话气泡体，40页）", "status": "待读", "note": "蝴蝶系列第1本（2018）；几乎纯对白气泡，“Is it time yet?” 贯穿全书；被 SLJ 比作 Mo Willems 的 Pigeon 系列", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 236, "title": "The Flower Thief（偷花的小偷）", "author": "Alice Hemming 文 / Nicola Slater 绘 / Scholastic", "lang": "英文", "age": "4-7岁", "lexile": "AD440L", "topic": "自然认知（春季·花开）+ 幽默", "form": "平装绘本", "status": "待读", "note": "同系列春天篇；理解植物生长、学会放手", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 237, "title": "The Leaf Thief（偷叶子的小偷）", "author": "Alice Hemming 文 / Nicola Slater 绘 / Scholastic", "lang": "英文", "age": "4-7岁", "lexile": "AD450L", "topic": "自然认知（秋季·落叶）+ 幽默", "form": "平装绘本", "status": "待读", "note": "松鼠以为叶子被偷走；与 The Snow Thief、The Flower Thief 同系列", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 238, "title": "The Snow Thief", "author": "Alice Hemming / Nicola Slater（Scholastic）", "lang": "英文", "age": "4-7岁", "lexile": "AD480L", "topic": "自然认知（四季/雪）/ 幽默", "form": "绘本", "status": "待读", "note": "官方 Lexile AD480L / AR 1.8", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 239, "title": "The Ultimate Book of Cities（城市大百科）", "author": "Anne-Sophie Baumann 文 / Didier Balicevic 绘 / Twirl（Bayard）", "lang": "英文", "age": "5-8岁", "lexile": "520L", "topic": "科普（城市运转·交通·建筑·职业）", "form": "机关互动书", "status": "待读", "note": "大量翻翻、转盘机关；句子较短，可让孩子自己翻", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 240, "title": "Octopuses Have Zero Bones（章鱼有零根骨头）", "author": "Anne Richardson / Tra Publishing", "lang": "英文", "age": "4-8岁", "lexile": "AD590L", "topic": "数学启蒙（数字·数量）+ 动物冷知识", "form": "精装绘本", "status": "待读", "note": "从 0 开始用动物冷知识讲数字，画风简约", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 241, "title": "Lost and Found in History（历史里找一找）", "author": "Clara Booth / Thames & Hudson", "lang": "英文", "age": "5-9岁", "lexile": "无官方蓝思（预估AD600L）", "topic": "历史认知（找找书·观察力）+ 世界史", "form": "精装找找书", "status": "待读", "note": "横跨古埃及、古罗马、中世纪等时代，在热闹画面里寻宝", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 242, "title": "The Magic School Bus Rides Again: Rock Man vs. Weather Man（岩石大侠对天气侠）", "author": "Samantha Brooke 文 / Artful Doodlers 绘 / Scholastic（Scholastic Reader Level 2）", "lang": "英文", "age": "5-7岁", "lexile": "610L（AR 3.4 / GRL N）", "topic": "科普分级读物（地球科学·岩石循环）+ 漫画风", "form": "平装 32 页（含贴纸，Scholastic Reader Level 2）", "status": "待读", "note": "Netflix 新版神奇校车衍生分级读物。用“岩石大侠 vs 天气侠”的对战讲岩石循环：岩石被风化、搬运、沉积、再成形。Level 2 篇幅短、句子简单，是这套里最容易自己读的一本；蓝思610L/AR3.4/GRL N 已核实", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 243, "title": "Usborne Lift-the-flap Picture Atlas（翻翻世界地图）", "author": "Alex Frith 文 / Kate Leake 绘 / Usborne", "lang": "英文", "age": "5-8岁", "lexile": "无官方蓝思（预估AD620L）", "topic": "地理启蒙（七大洲·地标·人文）", "form": "翻翻地图集", "status": "待读", "note": "附一张超大世界海报；可配地球仪一起用", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 244, "title": "Moon: An Illustrated Guide（月亮图解指南）", "author": "（作者待核对，书脊署名 Brendan Kearney 区域待核）", "lang": "英文", "age": "5-8岁", "lexile": "无（未查到官方蓝思）", "topic": "科普（月球·天文）+ 图解信息书", "form": "精装图解书（夜间色调，图表与剖面图）", "status": "待读", "note": "讲月亮的相位、潮汐、登月、月面地形，用图解方式呈现。信息密度偏大，适合5岁后当“第一本天文书”，现在可先看图认月相", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 245, "title": "Amy Gets Eaten（艾米被吃掉了）", "author": "Adam Kay 文 / Henry Paker 绘 / Puffin", "lang": "英文", "age": "4-7岁", "lexile": "无（未查到官方蓝思）", "topic": "科普故事（消化系统）+ 爆笑", "form": "平装绘本（亮色、漫画感排版）", "status": "待读", "note": "一块面包（艾米）被吃进肚子，沿着食道、胃、肠道走完全程——消化系统科普，用“被吃掉”的第一人称视角讲，孩子笑得停不下来也记住了器官顺序", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 246, "title": "Simon Gets Sneezed（西蒙被一个喷嚏带走）", "author": "Adam Kay 文 / Henry Paker 绘 / Puffin", "lang": "英文", "age": "4-7岁", "lexile": "无（未查到官方蓝思）", "topic": "科普故事（人体·细菌病毒）+ 爆笑屎尿屁", "form": "平装绘本（亮色、漫画感排版）", "status": "待读", "note": "一个小细菌被喷嚏喷出体外，开始一场“鼻涕大冒险”——把打喷嚏、飞沫传播、细菌这些概念讲得又脏又好笑。Adam Kay 的作品一向如此，适合聊“为什么会生病、为什么要洗手”", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 247, "title": "Do Not Open These Books 八册盒装（DO NOT OPEN THIS BOOK 系列）", "author": "Andy Lee 文 / Heath McKenzie 绘 / Lake Press · Made of Paper", "lang": "英文", "age": "4-7岁", "lexile": "无（未查到官方蓝思）", "topic": "幽默绘本（打破第四面墙·互动式）+ 情绪社交（规则与反抗）", "form": "精装小册盒装（8册，含“not so hilarious”系列）", "status": "待读", "note": "Andy Lee 的“别打开这本书”系列，8 册盒装。主角是个蓝色小人，每翻一页就求孩子别翻，越翻越崩，典型的“整本书在跟读者对话”的互动幽默书。八册分别是 Do Not Open This Book / Again / Seriously Do Not Open This Book / Definitely Do Not Open This Book / Ever / Or Else / for Christmas / Yule Not Open This Book。适合孩子能听懂“反话”的年纪（4 岁+），读起来全是笑点", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 248, "title": "Usborne Pop-Up 立体书 6册（Butterflies / Space / Ocean / Seasons / Nature / Animals）", "author": "Anna Milbourne 等文（Usborne）", "lang": "英文", "age": "3-6岁（Seasons 官方3+；Butterflies/Space/Nature/Animals 官方5+；Ocean 美站3+、英站5+）", "lexile": "无（Usborne 立体书系列无官方蓝思）", "topic": "认知科普（蝴蝶/太空/海洋/四季/自然/动物）+ 艺术审美", "form": "精装立体书（每册约10页、5个大立体，含朗读音频二维码）", "status": "待读", "note": "同属 Usborne「Pop-Ups」系列（全系列13册：另一批 Zoo/Farm/Jungle/Birds/Diggers/London 未在手）。纸艺是主角：蝴蝶振翅、蝶群迁飞、世界最大蝴蝶原尺寸、太空舱/行星、深海分层、四季更替。文字是“每个立体旁一两句简单事实”，不是叙述故事，信息密度中等但不是分级读物——难度主要卡在科普词汇（metamorphosis / chrysalis / galaxy / coral / predators），不是句子长度。🟡阶段只能当立体玩具翻，🟠阶段才能听懂文字", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 249, "title": "Brendan Kearney 环保系列（Bird / Fish / Forest / Arctic 等，5册左右）", "author": "Brendan Kearney 著绘", "lang": "英文", "age": "4-7岁", "lexile": "无（未查到官方蓝思）", "topic": "环保科普绘本（海洋塑料/森林砍伐/极地变暖/鸟类迁徙）+ 冒险故事", "form": "平装绘本（系列多册，统一插画风格）", "status": "待读", "note": "每本都是“一个大人+一只动物”的冒险：Fish 讲海洋塑料污染，Forest 讲乱砍滥伐，Arctic 讲冰层融化，Bird 讲迁徙与栖息地减少。故事在前、环保知识在后，末尾有可操作的小建议；与《A Bigger Digger》同一作者，画风一致", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 250, "title": "The Night the Moon Went Missing（月亮不见的那晚）", "author": "Brendan Kearney 著绘 / DK（与已收 Brendan Kearney 环保系列同一作者）", "lang": "英文", "age": "4-7岁", "lexile": "无（未查到官方蓝思）", "topic": "故事绘本（夜晚·恐惧与安慰）+ 天文启蒙（星座）", "form": "精装绘本（深蓝夜空，月亮拟人脸+星座动物）", "status": "待读", "note": "月亮不见了，一个小女孩踏上寻找之路；夜空里铺满星座动物（大熊、天鹅、天秤）。与作者那套环保系列同属“温柔科普故事”，可作睡前共读。出版方为 DK（非盖世书），小蝌蚪笔可点读；蓝思未查到官方值", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小蝌蚪", "pointLabel": "点读"}, {"id": 251, "title": "Animal Teams: How Amazing Animals Work Together in the Wild（动物团队）", "author": "Charlotte Milner 著绘 / DK", "lang": "英文", "age": "5-8岁（DK 科普常见口径）", "lexile": "无（未查到官方蓝思）", "topic": "科普图鉴（动物协作行为）+ 生态与群体", "form": "精装大16开（浅灰绿底，飞鸟群拼成图案）", "status": "待读", "note": "DK 科普绘本，讲动物如何协作：群飞、围猎、共生、报警。图鉴式排版、词汇密度高于故事绘本，适合5岁后当“读图+提问”用。出版方为 DK（非盖世书），小蝌蚪笔可点读；蓝思未查到官方值", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小蝌蚪", "pointLabel": "点读"}, {"id": 252, "title": "The Long Way Home", "author": "Corrinne Averiss 文 / Kristyna Litten 绘（Stripes · Little Tiger）", "lang": "英文", "age": "5-8岁（官方 5+）", "lexile": "无（未查到官方蓝思）", "topic": "幻想故事（冒险）+ 情绪社交（祖孙亲情·记忆）", "form": "彩色插画桥梁书（Colour Fiction，96页）", "status": "待读", "note": "Little Tiger 的 Colour Fiction 系列：每页全彩插图、分章短句，是绘本到章节书的独立阅读过渡本。故事：小象 Otto 陪记性变差的奶奶 Nanu 登狮子山，奶奶忘了回家的路，Otto 靠奶奶教过的探险本领带两人回程", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 253, "title": "BigFoot Spotted at World-Famous Landmarks（大脚怪现身世界名胜）", "author": "D. L. Miller 著 / Happy Fox Books（Fox Chapel，2018）", "lang": "英文", "age": "5-12岁（官方 5-12，K-7）", "lexile": "无官方蓝思（找找书未分级）", "topic": "找找书（世界地标·观察力）+ 地理人文", "form": "精装大开本 48页（10×10 英寸）", "status": "待读", "note": "BigFoot 找找书系列：长城、泰姬陵、自由女神等 10 个双页大场景，500+ 隐藏物件；同系列另有 Big Cities of the World / Goes On Vacation / Big City Adventures", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 254, "title": "Elephants on Tour: A Search & Find Journey Around the World（大象旅行团）", "author": "Guillaume Cornet 著绘 / Laurence King Publishing（Hachette）", "lang": "英文", "age": "6-9岁（官方 6-9）", "lexile": "无官方蓝思（未查到）", "topic": "找找书（环球城市·观察力）+ 世界地理", "form": "精装找找书 48 页", "status": "待读", "note": "17 个超细密场景：伦敦、香港、里约、伊斯坦布尔、罗马等，找大象、找它们丢的东西；文字极少，靠画面撑，适合长途旅行/等餐时玩", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 255, "title": "Let's-Read-and-Find-Out Science 科一（Stage 1，4册）", "author": "HarperCollins（小彼恩点读版）", "lang": "英文", "age": "3-6岁", "lexile": "无（未查到官方蓝思）", "topic": "科普通识（天文/人体/感官）", "form": "科普绘本套装（4册）", "status": "待读", "note": "含 The Big Dipper、Air Is All Around You、Sounds All Around、A Drop of Blood；按主题混搭，Stage 1 与 Stage 2 混在同一摞", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 256, "title": "Mr. Gumpy's Outing（甘皮先生出游）", "author": "John Burningham 著绘 / Square Fish（凯特·格林纳威金奖）", "lang": "英文", "age": "3-7岁", "lexile": "无（未查到官方蓝思）", "topic": "经典绘本（乘船出游·连锁反应）+ 重复句式与因果", "form": "平装绘本（水彩，老派经典画风）", "status": "待读", "note": "甘皮先生划船出游，孩子、兔子、猫、狗、猪一个个上船，最后船翻了——经典“累积型”故事结构，每一页都在重复上一句并加一个人，孩子会抢着接。1970 年格林纳威金奖作品，是重复句式绘本的祖师爷", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 257, "title": "The Hat Full of Secrets", "author": "Karl Newson 文 / Wazza Pink 绘（Stripes · Little Tiger）", "lang": "英文", "age": "5-8岁（官方 5+）", "lexile": "无（未查到官方蓝思）", "topic": "幻想故事（温情）+ 情绪社交（秘密·祖孙亲情）", "form": "彩色插画桥梁书（Colour Fiction，96页）", "status": "待读", "note": "同为 Colour Fiction 系列。故事：Henry 有个大秘密，爷爷给他一顶帽子“把秘密压在帽子底下”，结果他发现爷爷也有自己的秘密；适合当“什么样的秘密可以说”的话题引子", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 258, "title": "We Are All Astronauts!（我们都是宇航员！）", "author": "Kate Pankhurst 著绘 / Bloomsbury", "lang": "英文", "age": "5-8岁", "lexile": "无（未查到官方蓝思）", "topic": "科普（太空·航天）+ 训练与探索流程", "form": "平装绘本（深色太空底+知识框图）", "status": "待读", "note": "同系列太空本：从“想当宇航员需要什么”出发，讲体能训练、失重、火箭结构、在空间站怎么吃睡。信息量比 Inventors 更大，适合大班到小学低年级", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 259, "title": "We Are All Inventors!（我们都是发明家！）", "author": "Kate Pankhurst 著绘 / Bloomsbury", "lang": "英文", "age": "5-8岁", "lexile": "无（未查到官方蓝思）", "topic": "科普（发明·工程思维）+ 女性科学家榜样 + 动手实验", "form": "平装绘本（大幅插画+知识框图，32页）", "status": "待读", "note": "《Fantastically Great Women》作者的 STEM 系列：把“点子怎么变成真东西”拆成观察—设计—试错—改进的流程，穿插真实发明家故事，末尾有可动手做的小实验。适合5岁后当“工程启蒙”第一本", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 260, "title": "What Do You Do with a Chance?（机会来了，你会怎么做？）", "author": "Kobi Yamada 文 / Mae Besom 绘", "lang": "英文", "age": "5-8岁", "lexile": "无（未查到官方蓝思）", "topic": "成长哲理绘本（机会·勇气·尝试）+ 隐喻叙事", "form": "精装绘本（水彩，抽象隐喻画风）", "status": "待读", "note": "“机会”被画成一个会飞的金色小东西：第一次它出现时孩子没敢抓住，之后它就不来了；直到他学会主动伸手。Kobi Yamada 的“What Do You Do With…”三部曲之一，适合5岁后聊“怕失败”", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 261, "title": "Usborne Look Inside Your Body", "author": "Louie Stowell 文（Usborne）", "lang": "英文", "age": "4-5岁起（Usborne 官方标 5+）", "lexile": "无官方蓝思", "topic": "科普通识（人体/器官/生长）", "form": "翻翻书（14页，100+ 翻页）", "status": "待读", "note": "与科二 A Drop of Blood / The Skeleton Inside You 主题重叠，可当“中文先讲、英文再读”的对照本；文字比 Nature 密", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 262, "title": "Usborne Look Inside Nature", "author": "Minna Lacey 文 / Carolina Buzio 绘（Usborne）", "lang": "英文", "age": "4-5岁起（Usborne 官方标 5+）", "lexile": "无官方蓝思", "topic": "科普通识（自然/动植物/生态）", "form": "翻翻书（14页，80+ 翻页）", "status": "待读", "note": "Usborne Look Inside 系列；树梢、芦苇后、地底下逐层翻看，问题是“这是什么/它住哪儿”式，图和翻页承担大部分信息", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 263, "title": "You Choose Collection 三册（You Choose / You Choose Your Dreams / You Choose in Space）", "author": "Nick Sharratt 绘 / Pippa Goodhart 文 / Puffin", "lang": "英文", "age": "3-7岁", "lexile": "无（无字/少字互动绘本，不标蓝思）", "topic": "互动绘本（选择·想象·口语表达）+ 认知（物品·场景）", "form": "精装大开本（ISBN 978-0-241-36837-4，U.K. £19.99）", "status": "待读", "note": "无字/极简字绘本：每页一堆小图，让孩子自己“选一个”，故事随选择变。被 T.E.S 评价为“最利于发展说与听”。三册主题分别是你选什么/你的梦想/太空。这套对小麦来说 3 岁后才会真正玩起来，但 2 岁可以当纯图鉴指认；很适合做口语输出练习", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 264, "title": "Just Try It! Someplace New!（试一试！新地方）", "author": "Phil Rosenthal & Lily Rosenthal 文 / Luke Flowers 绘 / Simon & Schuster Books for Young Readers（2026.3）", "lang": "英文", "age": "4-8岁（官方 4-8，Preschool-Grade 3）", "lexile": "无官方蓝思（未查到）", "topic": "情绪社交（分离焦虑·尝试新事物）+ 幽默", "form": "精装绘本", "status": "待读", "note": "父女档作者（Phil & Lil 系列）第二本；Lil 第一次独自去奶奶家住，脑子里全是「万一床是石头做的」这类灾难想象，爸爸一句句接住；适合入园/寄宿/分床前预演", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 265, "title": "Usborne Peculiar Pop-Ups 3册（Get That Monster Out of Here! / There's a Hippo in My Toilet! / Who Let the Dinosaurs Out?）", "author": "Sam Taplin 文 / Fred Blunt、Susan Batori 绘（Usborne）", "lang": "英文", "age": "4-7岁（官方：Hippo 4+、Dinosaurs 4+、Monster 5+）", "lexile": "无（Usborne 翻翻立体书无官方蓝思）", "topic": "幻想故事（幽默·闹剧）+ 情绪社交（不怕·幽默面对）", "form": "精装翻翻立体书（Lift the flaps… if you dare!，每册多页立体+翻页）", "status": "待读", "note": "「Peculiar Pop-Ups」系列共3册，全在你手上。特点是翻开每一页都有立体弹起+暗藏翻页，主打“咦，怎么会有这种东西”的荒诞幽默：怪兽把厨房吃空要赶出去、厕所里泡着一只河马、恐龙把家门顶开跑出来。文字短、以拟声词和问句为主，但笑点依赖反常识和夸张，2-3岁只能当立体玩具，4岁后才能接到笑点", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 266, "title": "Wilfred and Olbert's Epic Prehistoric Adventure（史前大冒险）", "author": "Stephan Lomp（LOMP）著绘 / Little Tiger Press（Stripes）", "lang": "英文", "age": "5-8岁（官方 5+）", "lexile": "无官方蓝思（未查到）", "topic": "冒险（时间旅行·史前生物）+ 找一找", "form": "精装活动故事书（A Puzzle Activity Story Book）", "status": "待读", "note": "系列第2本（2018）：两人买了时间机器却误闯大爆炸，一路跳回现代，顺路认识恐龙、猛犸、剑齿虎；小彼恩点读版", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 267, "title": "Wilfred and Olbert's Totally Wild Chase（威尔弗雷德与奥尔伯特的疯狂追逐）", "author": "Stephan Lomp（LOMP）著绘 / Little Tiger Press（Stripes）", "lang": "英文", "age": "5-8岁（官方 5+）", "lexile": "无官方蓝思（未查到）", "topic": "冒险（找一找·益智解谜）+ 自然认知（动物）", "form": "精装活动故事书（A Puzzle Activity Story Book）", "status": "待读", "note": "两个爱较劲的探险家 Wilfred 与 Olbert 一路比谁先找到动物，书里满是找一找与解谜任务；2017年出版；小彼恩点读版", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 268, "title": "MathStart Level 1（7册套装）", "author": "Stuart Murphy（HarperCollins · 小彼恩 Talking Pen Edition）", "lang": "英文", "age": "3-6岁", "lexile": "无", "topic": "数学启蒙（数数/比较/图形）/ 故事叙事", "form": "点读绘本套装（Level 1，7册）", "status": "待读", "note": "含 Just Enough Carrots、Bug Dance、Double the Ducks、The Greatest Gymnast of All、Missing Mittens、Jazzmatazz!、Seaweed Soup", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 269, "title": "The Digits 系列 4 册（Number Bumble! / Double the Fun / The Perfect Number / Odds vs Evens）", "author": "Tony Bradman 文 / Sr. Sánchez 绘（Oxford University Press 牛津大学出版社）", "lang": "英文", "age": "4-7岁", "lexile": "无（未查到官方蓝思）", "topic": "数学启蒙（数字角色·奇偶与倍数）+ 幽默漫画风", "form": "平装绘本 4 册（每本一个数字主题，彩条书脊）", "status": "待读", "note": "Tony Bradman 文 / Sr. Sánchez 绘，Oxford University Press 出版（非 DK、非盖世，也不能点读）。四本一整套：Number Bumble!（数字挤成一团）、Double the Fun（双数）、The Perfect Number（完美数）、Odds vs Evens（奇偶对抗）。每本用具体数字角色讲一个数学概念，4本连读覆盖奇偶、倍数与数位；蓝思未查到官方值", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 270, "title": "W PLAY 词汇妙趣国（礼盒套装）", "author": "小彼恩（彩虹兔）", "lang": "英文", "age": "3-8岁", "lexile": "无", "topic": "认知启蒙（职业/词汇积累）/ 口语表达", "form": "点读礼盒套装（12绘本+12练习册+5词汇游戏书）", "status": "待读", "note": "官方标 3-8岁；250+核心词汇、600+生活词汇；含2种点读游戏模式", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 271, "title": "楚辞·山鬼（绘本版）", "author": "屈原 原著 / 狐狸家 编著 / 中信出版集团（2021年7月）", "lang": "中文", "age": "5-9岁", "lexile": "无（古典诗文绘本，不适用蓝思）", "topic": "古典诗文（楚辞·神话想象）", "form": "精装绘本", "status": "待读", "note": "官方推荐5岁+，“若有人兮山之阿，被薜荔兮带女萝”，画山鬼与山神的浪漫奇幻想象；狐狸家《楚辞》绘本版之一（另有《国殇》），5岁可看图听读，读懂文本需更大", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 272, "title": "我要上小学了（幼小衔接心理建设6册）", "author": "张栢赫 著 / 刘晓明（教育心理学顾问）审定 / 人民教育出版社", "lang": "中文", "age": "4-7岁（幼小衔接，大班-一年级）", "lexile": "无（中文书不适用蓝思）", "topic": "成长教育（入学适应·心理建设）+ 社交情绪（防欺负·交友）", "form": "平装插画书（6册，每册32页左右）", "status": "待用", "note": "六册分别对应入学的六个焦虑点：学校什么样 / 你别欺负我 / 上课干什么 / 我的新朋友 / 受伤了怎么办 / 照顾自己我能行。属于“心理预演型”绘本，不是识字书，适合大班下学期开始共读。小麦现在太小，留到 5 岁再启用", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 273, "title": "白衣卿相柳永（绘本版）", "author": "戎耳 著 / 华张一 绘 / 中信出版集团", "lang": "中文", "age": "5-9岁", "lexile": "无（古典诗文绘本，不适用蓝思）", "topic": "古典诗文（宋词·词人传记）", "form": "精装绘本", "status": "待读", "note": "献给所有被说“你不行”的人——写柳永屡试不中、以词名世的经历，“才子词人，自是白衣卿相”；樱花与淡彩画面柔美，讲在夹缝中找到自己的天地", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 274, "title": "山的风·世界", "author": "李尧 著/绘 / 晨光出版社（2023）", "lang": "中文", "age": "4-7岁", "lexile": "无（无字/极简文字绘本，不适用蓝思）", "topic": "无字绘本（探索·好奇·故土）", "form": "精装绘本（大16开）", "status": "待读", "note": "孩子趴在老屋瓦檐上与屋檐上的猫对望，讲“第一次看见外面的世界”。“山的风”系列5册之一，李尧（国际无字书大奖得主）自传体式绘本，水墨+国风手绘、画面叙事为主，字极少；小花生阅读年龄集中在4-7岁，4岁以下可看图亲子共读", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 275, "title": "山的风·光芒", "author": "李尧 著/绘 / 晨光出版社（2023年8月，ISBN 9787571520144）", "lang": "中文", "age": "4-7岁", "lexile": "无（无字/极简文字绘本，不适用蓝思）", "topic": "无字绘本（自然·生命·想象）", "form": "精装绘本（大16开）", "status": "待读", "note": "红发小怪站在岩石上，头顶草木生花、手托一块发光的石头，讲生命力与奇想。“山的风”系列5册之一，李尧（国际无字书大奖得主）自传体式绘本，水墨+国风手绘、画面叙事为主，字极少；小花生阅读年龄集中在4-7岁，4岁以下可看图亲子共读", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 276, "title": "山的风·暖阳", "author": "李尧 著/绘 / 晨光出版社（2023）", "lang": "中文", "age": "4-7岁", "lexile": "无（无字/极简文字绘本，不适用蓝思）", "topic": "无字绘本（陪伴·温暖·亲情）", "form": "精装绘本（大16开）", "status": "待读", "note": "小鸟立在老城墙的筒瓦上晒太阳，讲陪伴与温度。“山的风”系列5册之一，李尧（国际无字书大奖得主）自传体式绘本，水墨+国风手绘、画面叙事为主，字极少；小花生阅读年龄集中在4-7岁，4岁以下可看图亲子共读", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 277, "title": "山的风·追梦", "author": "李尧 著/绘 / 晨光出版社（2023）", "lang": "中文", "age": "4-7岁", "lexile": "无（无字/极简文字绘本，不适用蓝思）", "topic": "无字绘本（梦想·勇气·成长）", "form": "精装绘本（大16开）", "status": "待读", "note": "雪地里孩子与一只红色大鸟相拥，讲追梦与不畏难。“山的风”系列5册之一，李尧（国际无字书大奖得主）自传体式绘本，水墨+国风手绘、画面叙事为主，字极少；小花生阅读年龄集中在4-7岁，4岁以下可看图亲子共读", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 278, "title": "山的风·飞翔", "author": "李尧 著/绘 / 晨光出版社（2023年10月，ISBN 9787571520120）", "lang": "中文", "age": "4-7岁", "lexile": "无（无字/极简文字绘本，不适用蓝思）", "topic": "无字绘本（想象·英雄·起飞）", "form": "精装绘本（大16开）", "status": "待读", "note": "孩子与孙悟空对视，幻想像被风吹起一样飞过树梢山间。“山的风”系列5册之一，李尧（国际无字书大奖得主）自传体式绘本，水墨+国风手绘、画面叙事为主，字极少；小花生阅读年龄集中在4-7岁，4岁以下可看图亲子共读", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 279, "title": "丽人行（绘本版）", "author": "(唐)杜甫 原著 / 狐狸家 编著 / 中信出版集团（2023年6月，ISBN 9787521756555）", "lang": "中文", "age": "5-9岁", "lexile": "无（古典诗文绘本，不适用蓝思）", "topic": "古典诗文（唐诗·盛唐风俗）", "form": "精装绘本（定价49.8元）", "status": "待读", "note": "以一个小女孩的视角写三月三日虢国夫人游春，展现盛唐之景；“诗圣”杜甫名篇改编，画面复原唐代服饰与春日曲江，适合亲子看图聊唐代生活", "c": "orange", "cl": "🟠 4-6岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 280, "title": "桃花源的故事（小彼恩点读版）", "author": "松居直 文 / 蔡皋 绘 / 小彼恩（点读版）", "lang": "中文", "age": "4-8岁", "lexile": "无（古典文学绘本，不适用蓝思）", "topic": "古典文学（陶渊明《桃花源记》·田园）", "form": "精装绘本（点读版）", "status": "待读", "note": "据陶渊明《桃花源记》改编，松居直（日本绘本之父）改写、蔡皋国风插画；小彼恩点读版可点读，田园牧歌式画面，适合4-8岁亲子共读", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 281, "title": "中国山河游·全景视觉大发现（全4册：一起去踏青/消夏/赏秋/看雪）", "author": "海豚童书 出品（全4册，四季分册）", "lang": "中文", "age": "4-8岁", "lexile": "无（中文视觉发现绘本，不适用蓝思）", "topic": "人文地理（全景视觉发现·四季·民俗）", "form": "精装绘本（大开本，4册）", "status": "待读", "note": "以四季为线索走遍国内28个地域场景，每页大量“找一找”细节，融地理、节气、民俗、美食；适合4岁以上亲子找图对话，锻炼观察力", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "", "pointLabel": "点读"}, {"id": 282, "title": "Little Match 小火柴 Level 2（10册）", "author": "盖世童书（Poodle Doodle 编辑，22位插画师分册绘制）", "lang": "英文", "age": "4-7岁（整套官方口径 3-10岁）", "lexile": "无（盖世分级未标蓝思）", "topic": "童话寓言（叙事·悬念）+ 情绪社交（善恶·智慧·勇气）", "form": "轻量分级绘本（10册/级，多重翻页设计）", "status": "待读", "note": "本级累计约 700 词，句子由短句转为连贯叙事。十册：The Fisherman and the Golden Fish / Goldilocks and the Three Bears / Mulan / The Little Match Girl / The Gingerbread Man / King Midas and the Golden Touch / The Ugly Duckling / The Wolf and the Seven Little Kids / The Boy Who Cried Wolf / The Town Musicians of Bremen。每册末尾附一句英语谚语点题（如 King Midas → Be careful what you wish for）", "c": "orange", "cl": "🟠 4-6岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 283, "title": "When I Was Young in the Mountains（山中童年）", "author": "Cynthia Rylant 文 / Diane Goode 绘 / Puffin（凯迪克荣誉奖）", "lang": "英文", "age": "5-8岁（官方 5-8 years / K-3）", "lexile": "AD780L", "topic": "故事绘本（回忆体·童年与亲情）+ 自然与山居生活", "form": "平装绘本 32 页（浅绿边框，月光雪景插画）", "status": "待读", "note": "凯迪克荣誉奖。外婆家的山居回忆：井水、玉米面包、煤矿、教堂，用“when I was young in the mountains”反复回环。文字是抒情散文诗，句子长、意象多，适合大人读给5岁孩子听；也是很好的英文写作范本（重复句式＋细节白描）", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 284, "title": "The Grumpus and His Dastardly, Dreadful Christmas Plan（暴躁怪与他的邪恶圣诞计划）", "author": "Alex T. Smith 著绘 / Macmillan Children's Books", "lang": "英文", "age": "5-8岁（文字量偏大，接近章节书）", "lexile": "无（未查到官方蓝思）", "topic": "节日故事（圣诞·反派人物的转变）+ 情绪社交（善意·被理解）", "form": "精装插图故事书（中长篇幅，多幅插画）", "status": "待用", "note": "Alex T. Smith 的圣诞原创长篇。主角 Grumpus 是一只脾气暴躁的怪物，策划了一个“毁掉圣诞节”的坏计划，最后被节日的暖意收买。文字密度明显高于普通绘本，接近轻章节，适合 5 岁后的圣诞季亲子连读", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 285, "title": "The Nutcracker and the Mouse King's Christmas Shenanigans（胡桃夹子与鼠王的圣诞恶作剧）", "author": "Alex T. Smith 著绘 / Macmillan Children's Books", "lang": "英文", "age": "5-8岁（文字量偏大）", "lexile": "无（未查到官方蓝思）", "topic": "节日故事（圣诞·经典童话改编）+ 冒险", "form": "精装插图故事书（胡桃夹子主题）", "status": "待用", "note": "以《胡桃夹子与鼠王》为底本重写，书名里的 shenanigans（恶作剧/闹剧）点明是轻松喜剧路线，画风与《The Grumpus》同一系列。和霍夫曼原著相比句子更口语、更适合英文起步阶段的孩子", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 286, "title": "Llama Llama Loves to Read（羊驼拉玛爱阅读）", "author": "Anna Dewdney 原著 / Reed Duncan 改编 / Viking", "lang": "英文", "age": "4-6岁", "lexile": "无（未查到官方蓝思）", "topic": "阅读启蒙绘本（学拼读·爱读书）+ 韵文", "form": "精装绘本（Llama Llama 系列，黄封面）", "status": "待读", "note": "讲拉玛在学校学字母、拼单词、最后自己读出第一个词的过程，把“学会阅读”这件事的成就感写得很清楚。是这一系列里最偏“入学准备”的一本，可留到中大班再看", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 287, "title": "Let's-Read-and-Find-Out Science 科二（Stage 2，约16册）", "author": "HarperCollins（小彼恩点读版）", "lang": "英文", "age": "5-8岁", "lexile": "无（未查到官方蓝思）", "topic": "科普通识（物理/地球/人体）", "form": "科普绘本套装（约16册）", "status": "待读", "note": "含 Forces Make Things Move、Gravity Is a Mystery、How People Learned to Fly、Simple Machines、Switch On Switch Off、What Is the World Made Of?、What Makes a Magnet?、Light Is All Around Us、Where Does the Garbage Go?、What Happens to Our Trash?、What's So Bad About Gasoline?、Hear Your Heart、The Skeleton Inside You、Germs Make Me Sick!、Energy Makes Things Happen 等；册数以实物为准", "c": "blue", "cl": "🔵 6-7岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 288, "title": "The Magic School Bus Inside the Earth（神奇校车·钻进地球）", "author": "Joanna Cole 文 / Bruce Degen 绘 / Scholastic", "lang": "英文", "age": "6-9岁", "lexile": "无（未查到官方蓝思）", "topic": "科普绘本（地球科学·地层与岩石）", "form": "平装大16开（经典版）", "status": "待读", "note": "经典版「神奇校车」（Joanna Cole 文 / Bruce Degen 绘，Scholastic），全书以卷毛老师的班级实地考察为线索，一页多格漫画＋大量对话气泡＋手写笔记，信息密度高。适合6岁起亲子共读、7-8岁自读；正文里夹杂图表和剖面图，边读边讲效果最好。蓝思未查到官方值。从地表一路钻到地心，讲土层、岩层、化石与火山", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 289, "title": "The Magic School Bus and the Electric Field Trip（神奇校车·电的旅程）", "author": "Joanna Cole 文 / Bruce Degen 绘 / Scholastic", "lang": "英文", "age": "6-9岁", "lexile": "无（未查到官方蓝思）", "topic": "科普绘本（物理·电与电路）", "form": "平装大16开（经典版）", "status": "待读", "note": "经典版「神奇校车」（Joanna Cole 文 / Bruce Degen 绘，Scholastic），全书以卷毛老师的班级实地考察为线索，一页多格漫画＋大量对话气泡＋手写笔记，信息密度高。适合6岁起亲子共读、7-8岁自读；正文里夹杂图表和剖面图，边读边讲效果最好。蓝思未查到官方值。校车变成电子在电线里跑，讲发电厂、电路、灯泡与用电安全", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 290, "title": "The Magic School Bus and the Science Fair Expedition（神奇校车·科学展览大探险）", "author": "Joanna Cole 文 / Bruce Degen 绘 / Scholastic", "lang": "英文", "age": "6-9岁", "lexile": "无（未查到官方蓝思）", "topic": "科普绘本（科学史·科学家与科学方法）", "form": "平装大16开（经典版，封面一群科学家）", "status": "待读", "note": "经典版「神奇校车」（Joanna Cole 文 / Bruce Degen 绘，Scholastic），全书以卷毛老师的班级实地考察为线索，一页多格漫画＋大量对话气泡＋手写笔记，信息密度高。适合6岁起亲子共读、7-8岁自读；正文里夹杂图表和剖面图，边读边讲效果最好。蓝思未查到官方值。跟着伽利略、牛顿、居里夫人等“科学展览”走一遍科学史，是本偏“方法论”的校车", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 291, "title": "The Magic School Bus at the Waterworks（神奇校车·水的净化）", "author": "Joanna Cole 文 / Bruce Degen 绘 / Scholastic", "lang": "英文", "age": "6-9岁", "lexile": "无（未查到官方蓝思）", "topic": "科普绘本（地球科学·水循环与自来水厂）", "form": "平装大16开（经典版，黄色校车）", "status": "待读", "note": "经典版「神奇校车」（Joanna Cole 文 / Bruce Degen 绘，Scholastic），全书以卷毛老师的班级实地考察为线索，一页多格漫画＋大量对话气泡＋手写笔记，信息密度高。适合6岁起亲子共读、7-8岁自读；正文里夹杂图表和剖面图，边读边讲效果最好。蓝思未查到官方值。这本讲城市供水：水库—净化厂—管道—水龙头，顺带讲蒸发与降水", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 292, "title": "Can I Build Another Me?（我能再造一个我吗？）", "author": "Shinsuke Yoshitake（吉竹伸介）著绘", "lang": "英文", "age": "5-8岁", "lexile": "无（未查到官方蓝思）", "topic": "哲理绘本（自我认知·身体与“我”是什么）+ 日式冷幽默", "form": "精装绘本（漫画分格+流程图式排版）", "status": "待读", "note": "小孩想“我这么忙，能不能造一个机器人替我去上学”，于是开始拆解“我”到底是什么：身体？记忆？喜好？全书用漫画分格讲哲学，笑点密集但问题很硬，是“自我认知”主题的天花板级作品", "c": "blue", "cl": "🔵 6-7岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 293, "title": "MathStart Level 2（约11册套装）", "author": "Stuart Murphy（HarperCollins · 小彼恩）", "lang": "英文", "age": "6-8岁", "lexile": "无", "topic": "数学启蒙（加减/统计/时间）/ 故事叙事", "form": "点读绘本套装（Level 2，约11册）", "status": "待读", "note": "含 100 Days of Cool、Tally O'Malley、Spunky Monkeys on Parade、Same Old Horse、Get Up and Go!、Give Me Half!、Mall Mania、Elevator Magic、The Best Vacation Ever、Animals on Board 等；册数以实物为准", "c": "blue", "cl": "🔵 6-7岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 294, "title": "Little Match 小火柴 Level 3（10册）", "author": "盖世童书（Poodle Doodle 编辑，22位插画师分册绘制）", "lang": "英文", "age": "6-10岁（整套官方口径 3-10岁，Level 3 为高阶）", "lexile": "无（盖世分级未标蓝思）", "topic": "童话（长篇叙事）+ 情绪社交（贪婪·自私·勇敢·善良）", "form": "轻量分级绘本（10册/级，多重翻页设计）", "status": "待读", "note": "Level 3 单本词汇 500-800，本级累计约 1000 词（三级去重总计约1400词），故事篇幅明显长于前两级，接近初章量。十册：Alice's Adventures in Wonderland / Cinderella / The Selfish Giant / Aladdin and the Magic Lamp / Rumpelstiltskin / Beauty and the Beast / The Wild Swans / The Emperor's New Clothes / The Nutcracker / The Elves and the Shoemaker", "c": "blue", "cl": "🔵 6-7岁", "pen": true, "penBrand": "盖世", "pointLabel": "点读"}, {"id": 295, "title": "Dog Man and Cat Kid（狗狗侦探与猫小子，#4）", "author": "Dav Pilkey 著绘 / Scholastic Graphix", "lang": "英文", "age": "7-10岁（Scholastic 官方 Age 7+）", "lexile": "无（未查到单册官方蓝思；全系列区间 GN210L-GN550L / ATOS 2.3-3.2）", "topic": "漫画小说（侦探·搞笑）+ 情绪社交（责任·成长）", "form": "精装漫画小说（约250页，全彩分镜）", "status": "待读", "note": "系列第 4 册，新增角色 Cat Kid（小猫 Petey 的“好版本”），开始出现“我是谁/我要成为谁”的成长主题。页数比 #3 多，但词汇难度几乎不涨，可接着 #3 读", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 296, "title": "Dog Man: A Tale of Two Kitties（狗狗侦探·双猫记，#3）", "author": "Dav Pilkey 著绘 / Scholastic Graphix", "lang": "英文", "age": "7-10岁（Scholastic 官方 Age 7+）", "lexile": "无（未查到单册官方蓝思；全系列区间 GN210L-GN550L / ATOS 2.3-3.2）", "topic": "漫画小说（侦探·搞笑）+ 情绪社交（正邪·友情）", "form": "精装漫画小说（约220页，全彩分镜）", "status": "待读", "note": "系列第 3 册，主线是 Dog Man 对抗两只小猫（其实就是 Petey 的克隆体）。全彩漫画，字少图多，行文大量拟声词和手写体，是“漫画先行”的典型桥梁材料，适合先把孩子拉进英文阅读、再谈字数", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 297, "title": "Geronimo Stilton: The Sewer Rat Stink（老鼠记者·下水道臭味，漫画版）", "author": "Geronimo Stilton / Tom Angleberger 改编，Graphix", "lang": "英文", "age": "7-10岁（Scholastic 官方 Age 7+）", "lexile": "无（未查到官方蓝思；该系列常见 GN 300-500L 区间）", "topic": "漫画小说（冒险·幽默）+ 城市生活", "form": "精装漫画小说（全彩分镜，Geronimo Stilton 漫画系列）", "status": "待读", "note": "《老鼠记者》正传是章节书（约 100 页、彩色字体排版活泼），这本是 Graphix 出的漫画改编版，比正传更好上手。适合作为从 Dog Man 过渡到“有文字量章节书”的下一站", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 298, "title": "Clifford Chapter Book Set", "author": "Scholastic", "lang": "英文", "age": "5-7岁", "lexile": "360L-560L（单册不一）", "topic": "幻想故事 / 幽默冒险", "form": "章节书套装（4册＋read-along CD）", "status": "待读", "note": "ISBN 978-981-09-4308-0。4册：Clifford Saves the Whales（560L / AR3.3）、The Big Red Detective、Cookie Crazy!、Clifford Finds a Clue（约361L / AR2.6）。官方标 Ages 5-7、RL 2.2；附 read-along CD，非点读", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 299, "title": "The Big Book of Bugs（昆虫大书）", "author": "Yuval Zommer 著绘 / Thames & Hudson", "lang": "英文", "age": "5-8岁", "lexile": "IG640L", "topic": "科普（昆虫·甲虫·蝴蝶·蜂类）", "form": "大开本精装科普", "status": "待读", "note": "Yuval Zommer「Big Book」系列，同系列里文字最浅的一本", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 300, "title": "Unipiggle 独角兽小猪系列（全6册：Unicorn Muddle / Mermaid Mayhem / Dragon Trouble / Witch Emergency / Camping Chaos / Fairy Freeze）", "author": "Hannah Shaw 著绘 / Usborne（2020-2023）", "lang": "英文", "age": "6-8岁", "lexile": "720L–920L（Usborne 官方：Camping Chaos 720L / Witch Emergency·Fairy Freeze 740L / Dragon Trouble 770L / Mermaid Mayhem 800L / Unicorn Muddle 920L；AR 4.9-5.3）", "topic": "章节书（奇幻冒险·幽默·公主与神兽）", "form": "章节书（全彩插图，约128页/册）", "status": "待读", "note": "第1本 Unicorn Muddle 讲 Princess Pea 挑独角兽时挑到一只胖小猪 Unipiggle，随后6册连番冒险；全彩插图多、字少句短，适合刚进入章节书；按难度建议从 Camping Chaos 720L 读到 Unicorn Muddle 920L", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 301, "title": "How Winston Came Home for Christmas（温斯顿回家过圣诞）", "author": "Alex T. Smith 著绘 / Macmillan Children's Books", "lang": "英文", "age": "7-10岁", "lexile": "无（未查到官方蓝思）", "topic": "节日故事（圣诞·寻找家人）+ 情绪社交（归属感·友情）", "form": "精装章节书（24½ 章，配套圣诞倒数读法）", "status": "待用", "note": "上一本的续集，温斯顿在圣诞前寻找失散的家人，同样是 24½ 章倒数结构。两本都建议留到小麦 6 岁后的 12 月，作为“每天一章”的亲子仪式读，而不是现在读", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 302, "title": "How Winston Delivered Christmas（温斯顿的圣诞快递，24½章圣诞倒数故事）", "author": "Alex T. Smith 著绘 / Macmillan Children's Books", "lang": "英文", "age": "7-10岁", "lexile": "无（未查到官方蓝思）", "topic": "节日故事（圣诞·寄信历险）+ 情绪社交（善意·坚持）", "form": "精装章节书（24½ 章，按 12 月 1-24 日每天读一章）", "status": "待用", "note": "专门为圣诞倒数设计的章节书：12 月 1 日到 24 日，一天读一章，24½ 章在平安夜收尾。主角是老鼠温斯顿，为把小朋友的信送到圣诞老人手里跑了整座城市。带大量插图和手作小活动页，仪式感极强", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 303, "title": "The Magic School Bus Presents: The Human Body（神奇校车·人体）", "author": "Joanna Cole & Bruce Degen 原著体系 / Scholastic（Presents 系列）", "lang": "英文", "age": "8-10岁", "lexile": "无（未查到官方蓝思）", "topic": "科普图鉴（人体结构与器官功能）", "form": "平装大16开（Presents 系列，实拍图＋图解）", "status": "待读", "note": "Presents 系列与经典版不同：不是故事漫画，而是实拍照片＋剖面图＋fact 框的科普图鉴，用词比经典版更正式，适合8岁以后自己查读；作为人体主题的工具书用", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 304, "title": "Marvellous Magicians: The Greatest Magicians of All Time!（了不起的魔术师）", "author": "Lydia Corry 著绘 / Thames & Hudson（2020，48页）", "lang": "英文", "age": "8-12岁（出版社标注 Age 8-12 / Grade 3-7）", "lexile": "无官方蓝思（未查到）", "topic": "科普传记（魔术史·人物故事）", "form": "精装绘本 48页（23.7×23.7cm）", "status": "待读", "note": "八位史上著名魔术师的传记＋魔术简史，剪纸式大色块拼贴插画，含经典魔术表演与机关拆解；Thames & Hudson 童书非虚构，文字量偏大，适合小学中年级自主阅读，小麦现阶段以看图识人为主", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 305, "title": "MathStart Level 3（约10册套装）", "author": "Stuart Murphy（HarperCollins · 小彼恩）", "lang": "英文", "age": "7-9岁", "lexile": "无", "topic": "数学启蒙（概率/面积/乘除）/ 故事叙事", "form": "点读绘本套装（Level 3，约10册）", "status": "待读", "note": "含 The Sundae Scoop、More or Less、Probably Pistachio、Captain Invincible and the Space Shapes、Racing Around、Let's Fly a Kite、A Fair Bear Share、Pepper's Journal、Bigger Better Best、Coyotes All Around；册数以实物为准", "c": "purple", "cl": "🟣 7-9岁", "pen": true, "penBrand": "小彼恩", "pointLabel": "点读"}, {"id": 306, "title": "琵琶行（绘本版）", "author": "(唐)白居易 原著 / 刘杨 改编 / 华张一 绘 / 中信出版集团（2024年1月，60页）", "lang": "中文", "age": "7-10岁", "lexile": "无（古典诗文绘本，不适用蓝思）", "topic": "古典诗文（唐诗·叙事长诗）", "form": "精装绘本 60页", "status": "待读", "note": "60页国风画卷再现616字《琵琶行》长诗，把“浔阳江头夜送客”到“江州司马青衫湿”故事化；中信“绘本版”古典名篇系列，古文原文＋故事改编，独立阅读需小学中高年级，现阶段以看图听读为主", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 307, "title": "长恨歌（绘本版）", "author": "(唐)白居易 原著 / 狐狸家 编著 / 中信出版集团", "lang": "中文", "age": "7-10岁", "lexile": "无（古典诗文绘本，不适用蓝思）", "topic": "古典诗文（唐诗·长篇叙事诗）", "form": "精装绘本", "status": "待读", "note": "白居易《长恨歌》全诗绘本化，写唐玄宗与杨贵妃故事，“天长地久有时尽，此恨绵绵无绝期”；狐狸家编绘，唐风人物与宫廷场景，大龄孩子读古诗与历史故事的入门", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 308, "title": "赤壁赋·苏东坡的心灵之旅（绘本版）", "author": "(宋)苏轼 著 / 小树、刘杨 改编 / 华张一 绘 / 中信出版集团", "lang": "中文", "age": "7-10岁", "lexile": "无（古典诗文绘本，不适用蓝思）", "topic": "古典诗文（宋文·人物心境）", "form": "精装绘本", "status": "待读", "note": "把《赤壁赋》的心境与苏轼一生串起来：潇洒、自洽、乐观、豁达、逆境不倒，“在不确定的时代，学会快乐地活着”；适合小学中年级以上读文人品格", "c": "purple", "cl": "🟣 7-9岁", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 309, "title": "The Big Book of Nature Art（自然手工艺大书）", "author": "Yuval Zommer 著绘 / Thames & Hudson", "lang": "英文", "age": "4-7岁", "lexile": "无官方蓝思（预估IG720L）", "topic": "自然手工（22个创意·树叶树枝创作）", "form": "大开本精装手工书", "status": "待读", "note": "同系列；偏动手，可捡自然物做作品", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 310, "title": "The Big Book of Beasts（野兽大书）", "author": "Yuval Zommer 著绘 / Thames & Hudson", "lang": "英文", "age": "5-8岁", "lexile": "无官方蓝思（预估IG760L）", "topic": "科普（野兽·哺乳动物·远古与传说）", "form": "大开本精装科普", "status": "待读", "note": "同系列", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 311, "title": "The Big Book of Blooms（花卉大书）", "author": "Yuval Zommer 著绘 / Thames & Hudson", "lang": "英文", "age": "5-8岁", "lexile": "无官方蓝思（预估IG770L）", "topic": "科普（花卉·植物·授粉）", "form": "大开本精装科普", "status": "待读", "note": "同系列", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 312, "title": "The Big Book of Birds（鸟类大书）", "author": "Yuval Zommer 著绘 / Thames & Hudson", "lang": "英文", "age": "5-8岁", "lexile": "无官方蓝思（预估IG780L）", "topic": "科普（鸟类·鸟喙·羽毛·迁徙）", "form": "大开本精装科普", "status": "待读", "note": "Yuval Zommer「Big Book」系列", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 313, "title": "The Big Book of the Blue（蓝色海洋大书）", "author": "Yuval Zommer 著绘 / Thames & Hudson", "lang": "英文", "age": "5-8岁", "lexile": "IG820L", "topic": "科普（海洋生物·浅海到深海）", "form": "大开本精装科普", "status": "待读", "note": "同系列里蓝思最高的一本", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 314, "title": "Our Islands（我们的岛屿）", "author": "Yuval Zommer 著绘 / Thames & Hudson（2025）", "lang": "英文", "age": "6-9岁", "lexile": "无官方蓝思（未查到）", "topic": "科普（岛屿地理·生态·人文）+ 图解信息书", "form": "精装科普大书 40 页", "status": "待读", "note": "Zommer 2025 新作：跳岛游加拉帕戈斯、马达加斯加、复活节岛、斯瓦尔巴、埃里伯斯山，每页是图文混排的信息版面（火山、极光、冰洞、狐猴），文字量接近 Big Book 系列，属信息型科普", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 315, "title": "The River That Flows Beside Me（我身边的河流）", "author": "Charlotte Guillain 文 / Yuval Zommer 绘 / Words & Pictures", "lang": "英文", "age": "5-8岁", "lexile": "无官方蓝思（预估AD790L）", "topic": "科普（河流生态·水循环）", "form": "风琴长折页科普（Look Closer 系列）", "status": "待读", "note": "从山泉源头一路流向大海；同系列", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 316, "title": "The World Around Me（我周围的世界）", "author": "Charlotte Guillain 文 / Yuval Zommer 绘 / Words & Pictures", "lang": "英文", "age": "5-8岁", "lexile": "无官方蓝思（预估AD800L）", "topic": "科普（世界地理·人文地标·地貌）", "form": "风琴长折页科普（Look Closer 系列）", "status": "待读", "note": "环游世界主题；同系列", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 317, "title": "The Sea Below My Toes（我脚下的海）", "author": "Charlotte Guillain 文 / Yuval Zommer 绘 / Words & Pictures", "lang": "英文", "age": "5-8岁", "lexile": "无官方蓝思（预估AD810L）", "topic": "科普（海洋分层·海底生物）", "form": "风琴长折页科普（Look Closer 系列）", "status": "待读", "note": "从海岸到深海逐层探索；同系列", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 318, "title": "The Skies Above My Eyes（我头顶的天空）", "author": "Charlotte Guillain 文 / Yuval Zommer 绘 / Words & Pictures", "lang": "英文", "age": "5-8岁", "lexile": "AD820L", "topic": "科普（大气层·飞行器·天文）", "form": "风琴长折页科普（Look Closer 系列）", "status": "待读", "note": "地面→云层→太阳系；同系列", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 319, "title": "The Street Beneath My Feet（我脚下的街道）", "author": "Charlotte Guillain 文 / Yuval Zommer 绘 / Words & Pictures", "lang": "英文", "age": "5-8岁", "lexile": "820L", "topic": "科普（地层·化石·地下管线·地核）", "form": "风琴长折页科普（Look Closer 系列）", "status": "待读", "note": "双面长折页，获奖科普；Look Closer 系列 5 册之一", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 320, "title": "The Magic & Mystery of Trees（树的神奇与秘密）", "author": "Jen Green 文 / Claire McElfatrick 绘 / DK · RHS 英国皇家园艺学会", "lang": "英文", "age": "7-9岁", "lexile": "870L", "topic": "科普（树木·根系网络·森林生态）", "form": "精装科普大书", "status": "待读", "note": "DK 与 RHS 合作；知识点硬核，适合有英文基础的孩子", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}, {"id": 321, "title": "100 Things to Know About Food（关于食物的100个冷知识）", "author": "Usborne 出品（Rose Hall 等 / Federico Mariani、Parko Polo 绘）", "lang": "英文", "age": "8-12岁（Usborne 官方 8+）", "lexile": "无（未查到官方蓝思）", "topic": "科普（食物·营养·农业·食品工业）+ 数据图表阅读", "form": "精装信息书（100条冷知识，128页，硬核图文排版）", "status": "待用", "note": "Usborne 100 Things 系列之一，全图解+小块文字，每条一个冷知识（4万只蜜蜂才能填满一个苹果园、实验室能培养出汉堡、讨厌西兰花有50%概率）。信息密度高，是“从故事书过渡到科普信息书”的好材料，但现在小麦太小，标记待用", "c": "red", "cl": "🔴 9岁+", "pen": false, "penBrand": "", "pointLabel": "非点读"}];
+const CUSTOM_BOOKS_KEY = 'xiaomai_custom_books_v1';
+const EDITED_BOOKS_KEY = 'xiaomai_edited_books_v1';
+const DELETED_BOOKS_KEY = 'xiaomai_deleted_books_v1';
+
+let customBooks = [];
+let editedBooksMap = {};
+let deletedBookIds = [];
+try { customBooks = JSON.parse(localStorage.getItem(CUSTOM_BOOKS_KEY) || '[]'); } catch(e) { customBooks = []; }
+try { editedBooksMap = JSON.parse(localStorage.getItem(EDITED_BOOKS_KEY) || '{}'); } catch(e) { editedBooksMap = {}; }
+try { deletedBookIds = JSON.parse(localStorage.getItem(DELETED_BOOKS_KEY) || '[]'); } catch(e) { deletedBookIds = []; }
+
+BOOKS.push(...customBooks);
+
+// 应用本地保存的书籍修改与删除记录
+function syncBooksFromStorage(){
+  for(let i = BOOKS.length - 1; i >= 0; i--){
+    const id = BOOKS[i].id;
+    if(deletedBookIds.includes(id)){
+      BOOKS.splice(i, 1);
+    } else if(editedBooksMap[id]){
+      Object.assign(BOOKS[i], editedBooksMap[id]);
+    }
+  }
+}
+syncBooksFromStorage();
+const LS_KEY = 'xiaomai_books_state_v1';
+let state = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+let filter = 'all';
+let openId = null;
+let dragTarget = null;
+
+window.addEventListener('mousemove', e=>{ if(dragTarget) dragTarget(e.clientX); });
+window.addEventListener('touchmove', e=>{ if(dragTarget) dragTarget(e.touches[0].clientX); }, {passive:true});
+window.addEventListener('mouseup', ()=> dragTarget = null);
+window.addEventListener('touchend', ()=> dragTarget = null);
+
+const DEF = {read:'待读', done:'已读完'};
+
+function st(id){ return state[id] || {}; }
+function myStatus(b){
+  const s = st(b.id).status;
+  if(s) return s;
+  return b.status === '在用' ? 'reading' : 'idle';
+}
+function stars(b){ return st(b.id).stars || 0; }
+
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+const HUE = {green:112, yellow:42, orange:24, blue:206, purple:272, red:0};
+
+function coverStyle(b){
+  const base = HUE[b.c] ?? 40;
+  const v = ((b.id * 37) % 15) - 7;
+  const h = base + v;
+  return `background:linear-gradient(150deg,hsl(${h},26%,74%),hsl(${h-8},30%,57%))`;
+}
+function coverLetter(t){ return (t.match(/^[A-Za-z\u4e00-\u9fa5]/)||['书'])[0].toUpperCase(); }
+
+function buildCard(b){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.id = b.id;
+
+  const cur = myStatus(b);
+  const sLabel = cur==='done' ? '已读完' : (cur==='reading' ? '正在读' : '未开始');
+  const sCls = cur==='done' ? 't-done' : (cur==='reading' ? 't-read' : 't-soft');
+
+  const langCls = b.lang.indexOf('中') === 0 ? 't-soft' : 't-soft';
+  const penTag = b.pen
+      ? `<span class="tag t-pen">点读${b.penBrand?'·'+b.penBrand:''}</span>`
+      : `<span class="tag t-soft">非点读</span>`;
+
+  card.innerHTML = `
+    <div class="inner">
+      <div class="top">
+        <div class="cover" style="${coverStyle(b)}">
+          <span class="cover-char">${coverLetter(b.title)}</span>
+          <button type="button" class="cover-add-btn" title="上传或更换封面">＋</button>
+        </div>
+        <div class="info">
+          <div class="title">${b.title}</div>
+          <div class="tags">
+            <span class="tag t-${b.c}">${b.cl}</span>
+            <span class="tag t-soft">${b.age}</span>
+            ${penTag}
+            <span class="tag t-soft">${b.lang}</span>
+            <span class="tag ${sCls}">${sLabel}</span>
+          </div>
+        </div>
+      </div>
+      <div class="status">
+        <button class="sbtn ${cur==='idle'?'on':''}" data-s="idle">未开始</button>
+        <button class="sbtn ${cur==='reading'?'on':''}" data-s="reading">正在读</button>
+        <button class="sbtn ${cur==='done'?'on':''}" data-s="done">已读完</button>
+      </div>
+      <div class="rating">
+        <div class="stars"></div>
+        <span class="rnum">${stars(b)||''}</span>
+      </div>
+    </div>
+    <div class="detail">
+      <hr>
+      <div class="row"><b>作者 / 出版社：</b>${b.author||'—'}</div>
+      <div class="row"><b>蓝思 Lexile：</b>${b.lexile||'—'}</div>
+      <div class="row"><b>题材标签：</b>${b.topic||'—'}</div>
+      <div class="row"><b>书籍形态：</b>${b.form||'—'}</div>
+      ${b.note?`<div class="note">${b.note}</div>`:''}
+      <div class="detail-actions">
+        <button type="button" class="edit-icon-btn" title="修改书籍信息">✏️ 修改书籍信息</button>
+      </div>
+    </div>
+  `;
+
+  // 优先读取本地持久化的自定义封面，其次读取书籍自带封面
+  const savedCover = (state[b.id] && state[b.id].cover !== undefined) ? state[b.id].cover : (b.cover || '');
+  const coverBox = card.querySelector('.cover');
+  if(savedCover){
+    const coverImg = document.createElement('img');
+    coverImg.src = savedCover;
+    coverImg.alt = b.title + ' 封面';
+    coverImg.style.cssText = 'width:100%;height:100%;object-fit:cover;background:#f7f3ec';
+    const charEl = coverBox.querySelector('.cover-char');
+    if(charEl) charEl.remove();
+    coverBox.insertBefore(coverImg, coverBox.firstChild);
+  }
+  coverBox.querySelector('.cover-add-btn').addEventListener('click', e=>{
+    e.stopPropagation();
+    openCoverModal(b);
+  });
+
+  // 星级
+  const starsBox = card.querySelector('.stars');
+  const rnum = card.querySelector('.rnum');
+  for(let i=1;i<=5;i++){
+    starsBox.innerHTML += `<span class="star">★<span class="fill">★</span></span>`;
+  }
+  function paint(v){
+    [...starsBox.children].forEach((el,i)=>{
+      const f = el.querySelector('.fill');
+      const full = i+1;
+      let w = v>=full ? 100 : (v>=full-0.5 ? 50 : 0);
+      f.style.width = w+'%';
+    });
+    rnum.textContent = v ? v : '';
+  }
+  paint(stars(b));
+
+  function setByX(x){
+    const r = starsBox.getBoundingClientRect();
+    const ratio = (x - r.left) / r.width;
+    let v = Math.round(Math.max(0, Math.min(5, ratio*5)) * 2) / 2;
+    state[b.id] = state[b.id] || {};
+    state[b.id].stars = v;
+    paint(v); save();
+  }
+  starsBox.addEventListener('mousedown', e=>{ e.stopPropagation(); dragTarget = setByX; setByX(e.clientX); });
+  starsBox.addEventListener('touchstart', e=>{ e.stopPropagation(); dragTarget = setByX; setByX(e.touches[0].clientX); }, {passive:true});
+
+  // 状态按钮
+  card.querySelectorAll('.sbtn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      state[b.id] = state[b.id] || {};
+      state[b.id].status = btn.dataset.s;
+      save(); render();
+    });
+  });
+
+  // 修改书籍信息按钮
+  const editInfoBtn = card.querySelector('.edit-icon-btn');
+  if(editInfoBtn){
+    editInfoBtn.addEventListener('click', e=>{
+      e.stopPropagation();
+      openEditBookPage(b);
+    });
+  }
+
+  // 展开
+  card.addEventListener('click', ()=>{
+    const d = card.querySelector('.detail');
+    const wasOpen = d.classList.contains('open');
+    document.querySelectorAll('.detail.open').forEach(x=>x.classList.remove('open'));
+    if(!wasOpen){ d.classList.add('open'); openId = b.id; } else { openId = null; }
+  });
+
+  return card;
+}
+
+function match(b){
+  if(filter==='pen' && !b.pen) return false;
+  if(filter==='zh' && b.lang.indexOf('中')<0) return false;
+  if(filter==='en' && b.lang.indexOf('英')<0) return false;
+  if(['green','yellow','orange','blue','purple','red'].includes(filter) && b.c!==filter) return false;
+  if(filter==='idle' && myStatus(b)!=='idle') return false;
+  if(filter==='reading' && myStatus(b)!=='reading') return false;
+  if(filter==='done' && myStatus(b)!=='done') return false;
+  const kw = (document.getElementById('search').value||'').trim().toLowerCase();
+  if(!kw) return true;
+  const hay = [b.title,b.author,b.lexile,b.topic,b.form,b.note,b.cl,b.age,b.lang,b.penBrand].join(' ').toLowerCase();
+  return hay.includes(kw);
+}
+
+function render(){
+  const grid = document.getElementById('grid');
+  const list = BOOKS.filter(match);
+  grid.innerHTML='';
+  if(!list.length){ grid.style.setProperty('--cols', 1); grid.innerHTML = '<div class="empty">没有找到匹配的绘本</div>'; }
+  else {
+    const width = grid.clientWidth || window.innerWidth - 40;
+    const minCardWidth = window.innerWidth <= 700 ? 260 : 302;
+    const gap = window.innerWidth <= 700 ? 12 : 20;
+    const cols = Math.max(1, Math.floor((width + gap) / (minCardWidth + gap)));
+    grid.style.setProperty('--cols', cols);
+    const columns = Array.from({length:cols}, ()=>{
+      const col = document.createElement('div');
+      col.className = 'column';
+      grid.appendChild(col);
+      return col;
+    });
+    list.forEach((b,i)=> columns[i % cols].appendChild(buildCard(b)));
+  }
+  renderStats();
+  document.getElementById('count').textContent = `共 ${list.length} 本 / 全库 ${BOOKS.length} 本`;
+  if(openId){ const c = grid.querySelector(`.card[data-id="${openId}"]`); if(c) c.querySelector('.detail').classList.add('open'); }
+}
+
+const FILTERS = [
+  ['all','全部'],
+  ['green','🟢 0-2岁'],
+  ['yellow','🟡 2-4岁'],
+  ['orange','🟠 4-6岁'],
+  ['blue','🔵 6-7岁'],
+  ['purple','🟣 7-9岁'],
+  ['red','🔴 9岁+'],
+  ['en','英文'],
+  ['zh','中文'],
+  ['pen','点读'],
+  ['idle','未开始'],
+  ['reading','正在读'],
+  ['done','已读完'],
+];
+const fbox = document.getElementById('filters');
+FILTERS.forEach(([k,label])=>{
+  const b = document.createElement('button');
+  b.className='fb'+(k==='all'?' on':''); b.textContent=label; b.dataset.k=k;
+  b.onclick=()=>{ filter=k; [...fbox.children].forEach(x=>x.classList.toggle('on', x.dataset.k===k)); openId=null; render(); };
+  fbox.appendChild(b);
+});
+
+document.getElementById('search').addEventListener('input', ()=>{ openId=null; render(); });
+
+function renderStats(){
+  document.getElementById('stats').innerHTML = [
+    `<span class="stat">全库 <b>${BOOKS.length}</b> 本</span>`,
+    `<span class="stat">英文 <b>${BOOKS.filter(b=>(b.lang||'').indexOf('英')>=0).length}</b></span>`,
+    `<span class="stat">中文 <b>${BOOKS.filter(b=>(b.lang||'').indexOf('中')>=0).length}</b></span>`,
+    `<span class="stat">可点读 <b>${BOOKS.filter(b=>b.pen).length}</b></span>`,
+  ].join('');
+}
+renderStats();
+
+
+// 新增绘本工作台：在线书目搜索、人工确认封面、保存本地书库。
+const $ = id => document.getElementById(id);
+function showAddModal(){ selectedCover=''; updateNewCoverUI(); $('searchResults').innerHTML=''; $('addModal').classList.add('show'); $('newTitle').focus(); }
+function hideAddModal(){ $('addModal').classList.remove('show'); }
+$('addBookBtn').addEventListener('click',showAddModal);
+$('quickSearchBtn').addEventListener('click',showAddModal);
+$('cancelAdd').addEventListener('click',hideAddModal);
+$('addModal').addEventListener('click',e=>{if(e.target===$('addModal'))hideAddModal();});
+$('navHome').addEventListener('click',()=>{ $('navHome').classList.add('active');$('navLibrary').classList.remove('active');window.scrollTo({top:0,behavior:'smooth'});});
+$('navLibrary').addEventListener('click',()=>{ $('navLibrary').classList.add('active');$('navHome').classList.remove('active');$('grid').scrollIntoView({behavior:'smooth'});});
+let selectedCover='';
+$('searchBookBtn').addEventListener('click',async()=>{
+ const q=$('newTitle').value.trim(); const box=$('searchResults');
+ if(!q){box.innerHTML='<div class="hint">请先输入书名或 ISBN。</div>';return;}
+ box.innerHTML='<div class="hint">正在搜索图书信息……</div>';
+ try{
+  const url='https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(/^97[89]\d{10}$/.test(q)?'isbn:'+q:'intitle:'+q)+'&maxResults=12&printType=books';
+  const res=await fetch(url); if(!res.ok)throw new Error('搜索服务暂时不可用');
+  const data=await res.json(); const items=data.items||[];
+  if(!items.length){box.innerHTML='<div class="hint">暂时没有找到匹配书目。可以尝试英文原名或 ISBN。</div>';return;}
+  box.innerHTML='';
+  items.forEach(item=>{
+   const v=item.volumeInfo||{};const image=v.imageLinks&&(v.imageLinks.thumbnail||v.imageLinks.smallThumbnail)||'';
+   const div=document.createElement('div');div.className='result';
+   const img=document.createElement('img');img.src=image.replace(/^http:/,'https:');img.alt='封面候选';
+   const title=document.createElement('b');title.textContent=v.title||'未命名书籍';
+   const meta=document.createElement('small');meta.textContent=(v.authors||[]).join('、')+' '+(v.publisher||'');
+   div.append(img,title,meta);div.addEventListener('click',()=>{
+    $('newTitle').value=v.title||q;$('newAuthor').value=[(v.authors||[]).join('、'),v.publisher||''].filter(Boolean).join(' / ');
+    if(v.language)$('newLang').value=v.language==='zh'?'中文':'英文';
+    if(v.publishedDate)$('newForm').value=($('newForm').value+' '+v.publishedDate).trim();
+    selectedCover=image.replace(/^http:/,'https:');
+    updateNewCoverUI();
+    [...box.children].forEach(x=>x.style.outline='');div.style.outline='2px solid #9b846a';
+   });box.appendChild(div);
+  });
+ }catch(err){box.innerHTML='<div class="hint">无法连接图书搜索服务。请检查网络，或稍后再试。</div>';}
+});
+
+// 图片压缩为 DataURL，确保 localStorage 长期稳定保存、刷新不丢失
+function compressImageFile(file){
+  return new Promise((resolve, reject)=>{
+    if(!file || !file.type.startsWith('image/')) return reject(new Error('请选择图片文件'));
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 360, maxH = 480;
+        let w = img.width, h = img.height;
+        if(w > maxW || h > maxH){
+          const ratio = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function readClipboardImage(){
+  if(navigator.clipboard && navigator.clipboard.read){
+    try{
+      const items = await navigator.clipboard.read();
+      for(const item of items){
+        const imgType = item.types.find(t=>t.startsWith('image/'));
+        if(imgType){
+          const blob = await item.getType(imgType);
+          return await compressImageFile(blob);
+        }
+      }
+      alert('剪贴板中未检测到图片，请先截图后再粘贴。');
+    }catch(err){
+      alert('请点击下方虚线框后，直接按键盘 Ctrl+V（Mac 按 Cmd+V）粘贴截图。');
+    }
+  }else{
+    alert('请点击下方虚线框后，直接按键盘 Ctrl+V（Mac 按 Cmd+V）粘贴截图。');
+  }
+  return null;
+}
+
+// 新增绘本弹窗封面控制
+function updateNewCoverUI(){
+  const box = $('newCoverPreview');
+  const rmBtn = $('newRemoveCoverBtn');
+  if(selectedCover){
+    box.innerHTML = `<img src="${selectedCover}" alt="封面预览">`;
+    rmBtn.style.display = 'inline-block';
+  }else{
+    box.textContent = '暂无封面';
+    rmBtn.style.display = 'none';
+  }
+}
+$('newLocalUploadBtn').addEventListener('click', ()=> $('newCoverFile').click());
+$('newCoverFile').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(f){
+    try{ selectedCover = await compressImageFile(f); updateNewCoverUI(); }
+    catch(err){ alert('图片处理失败，请重试'); }
+  }
+  e.target.value = '';
+});
+$('newPasteBtn').addEventListener('click', async ()=>{
+  const dataUrl = await readClipboardImage();
+  if(dataUrl){ selectedCover = dataUrl; updateNewCoverUI(); }
+});
+$('newPasteZone').addEventListener('paste', async e=>{
+  const items = (e.clipboardData || window.clipboardData).items || [];
+  for(const it of items){
+    if(it.type.startsWith('image/')){
+      e.preventDefault();
+      selectedCover = await compressImageFile(it.getAsFile());
+      updateNewCoverUI();
+      break;
+    }
+  }
+});
+$('newRemoveCoverBtn').addEventListener('click', ()=>{
+  selectedCover = '';
+  updateNewCoverUI();
+});
+
+// 现有绘本封面编辑弹窗
+let editingBook = null;
+let editingCoverData = '';
+function updateEditCoverUI(){
+  const box = $('editCoverPreview');
+  const rmBtn = $('editRemoveCoverBtn');
+  if(editingCoverData){
+    box.innerHTML = `<img src="${editingCoverData}" alt="封面预览">`;
+    rmBtn.style.display = 'inline-block';
+  }else{
+    box.textContent = '暂无封面';
+    rmBtn.style.display = 'none';
+  }
+}
+function openCoverModal(b){
+  editingBook = b;
+  editingCoverData = (state[b.id] && state[b.id].cover !== undefined) ? state[b.id].cover : (b.cover || '');
+  $('coverModalTitle').textContent = `设置封面 · ${b.title}`;
+  updateEditCoverUI();
+  $('coverModal').classList.add('show');
+  setTimeout(()=>$('editPasteZone').focus(), 50);
+}
+function closeCoverModal(){
+  $('coverModal').classList.remove('show');
+  editingBook = null;
+}
+$('cancelCoverModal').addEventListener('click', closeCoverModal);
+$('coverModal').addEventListener('click', e=>{ if(e.target === $('coverModal')) closeCoverModal(); });
+$('editLocalUploadBtn').addEventListener('click', ()=> $('editCoverFile').click());
+$('editCoverFile').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(f){
+    try{ editingCoverData = await compressImageFile(f); updateEditCoverUI(); }
+    catch(err){ alert('图片处理失败，请重试'); }
+  }
+  e.target.value = '';
+});
+$('editPasteBtn').addEventListener('click', async ()=>{
+  const dataUrl = await readClipboardImage();
+  if(dataUrl){ editingCoverData = dataUrl; updateEditCoverUI(); }
+});
+$('editPasteZone').addEventListener('paste', async e=>{
+  const items = (e.clipboardData || window.clipboardData).items || [];
+  for(const it of items){
+    if(it.type.startsWith('image/')){
+      e.preventDefault();
+      editingCoverData = await compressImageFile(it.getAsFile());
+      updateEditCoverUI();
+      break;
+    }
+  }
+});
+$('editRemoveCoverBtn').addEventListener('click', ()=>{
+  editingCoverData = '';
+  updateEditCoverUI();
+});
+$('saveCoverModal').addEventListener('click', ()=>{
+  if(!editingBook) return;
+  state[editingBook.id] = state[editingBook.id] || {};
+  state[editingBook.id].cover = editingCoverData;
+  // 若为自定义新增的书籍，同步更新 customBooks
+  const cb = customBooks.find(x=>x.id === editingBook.id);
+  if(cb){
+    cb.cover = editingCoverData;
+    localStorage.setItem(CUSTOM_BOOKS_KEY, JSON.stringify(customBooks));
+  }
+  try{
+    save();
+  }catch(e){
+    alert('浏览器本地存储空间已满，请先移除部分旧封面后再试。');
+    return;
+  }
+  closeCoverModal();
+  render();
+});
+
+// 支持在弹窗打开时全局 Ctrl+V 粘贴截图
+window.addEventListener('paste', async e=>{
+  if($('coverModal').classList.contains('show')){
+    const items = (e.clipboardData || window.clipboardData).items || [];
+    for(const it of items){
+      if(it.type.startsWith('image/')){
+        e.preventDefault();
+        editingCoverData = await compressImageFile(it.getAsFile());
+        updateEditCoverUI();
+        return;
+      }
+    }
+  }else if($('addModal').classList.contains('show') && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
+    const items = (e.clipboardData || window.clipboardData).items || [];
+    for(const it of items){
+      if(it.type.startsWith('image/')){
+        e.preventDefault();
+        selectedCover = await compressImageFile(it.getAsFile());
+        updateNewCoverUI();
+        return;
+      }
+    }
+  }
+});
+$('aiIntroBtn').addEventListener('click',async()=>{
+ const title=$('newTitle').value.trim(); if(!title){$('aiStatus').textContent='请先填写书名。';return;}
+ $('aiStatus').textContent='正在尝试调用 AI 服务……';
+ try{
+  const response=await fetch('/api/generate-book-description',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,author:$('newAuthor').value,age:$('newAge').value,topic:$('newTopic').value,form:$('newForm').value,language:$('newLang').value})});
+  if(!response.ok)throw new Error('AI 后台尚未配置');
+  const data=await response.json();$('newNote').value=data.description||'';$('aiStatus').textContent='介绍已生成，可以继续编辑。';
+ }catch(e){
+  const prompt=`请为儿童绘本《${title}》撰写一段绘本库介绍。已知信息：作者/出版社：${$('newAuthor').value||'未知'}；适读年龄：${$('newAge').value||'待判断'}；题材：${$('newTopic').value||'待判断'}；形态：${$('newForm').value||'未知'}。请按“内容概述、主题与阅读价值、画风/形式特点、适读建议”的结构写成一段客观介绍；未知信息明确标注待核实，不要编造剧情或出版信息。风格参考小麦绘本库现有 note：具体、实用、适合家长选书。`;
+  $('newNote').value=prompt;
+  $('aiStatus').textContent='AI 后台还未接通：已生成可直接复制到 AI 的专用提示词。接入后台后即可在网页内一键生成真实介绍。';
+ }
+});
+$('saveNewBook').addEventListener('click',()=>{
+ const title=$('newTitle').value.trim();if(!title){$('aiStatus').textContent='请填写书名后再保存。';return;}
+ const level=$('newLevel').value;const labels={green:'🟢 0-2岁',yellow:'🟡 2-4岁',orange:'🟠 4-6岁',blue:'🔵 6-7岁',purple:'🟣 7-9岁',red:'🔴 9岁+'};
+ const b={id:Math.max(0,...BOOKS.map(x=>Number(x.id)||0))+1,title,author:$('newAuthor').value,lang:$('newLang').value,age:$('newAge').value||'待补充',lexile:$('newLexile').value||'无',topic:$('newTopic').value||'待补充',form:$('newForm').value||'待补充',status:'待读',note:$('newNote').value,c:level,cl:labels[level],pen:$('newPen').value==='true',penBrand:'',pointLabel:$('newPen').value==='true'?'点读':'非点读',cover:selectedCover};
+ customBooks.push(b);localStorage.setItem(CUSTOM_BOOKS_KEY,JSON.stringify(customBooks));BOOKS.push(b);hideAddModal();render();$('count').textContent=`已添加《${title}》 · 共 ${BOOKS.length} 本`;
+});
+
+// 独立书籍信息编辑页面逻辑
+let currentEditingInfoBook = null;
+const LEVEL_LABELS = {
+  green: '🟢 0-2岁',
+  yellow: '🟡 2-4岁',
+  orange: '🟠 4-6岁',
+  blue: '🔵 6-7岁',
+  purple: '🟣 7-9岁',
+  red: '🔴 9岁+'
+};
+
+function openEditBookPage(b){
+  currentEditingInfoBook = b;
+  $('editPageSub').textContent = `正在编辑：《${b.title}》`;
+  $('editBookTitle').value = b.title || '';
+  $('editBookAuthor').value = b.author || '';
+  $('editBookLang').value = b.lang || '英文';
+  $('editBookAge').value = b.age || '';
+  $('editBookLexile').value = b.lexile || '';
+  $('editBookTopic').value = b.topic || '';
+  $('editBookForm').value = b.form || '';
+  $('editBookLevel').value = LEVEL_LABELS[b.c] ? b.c : 'yellow';
+  $('editBookPen').value = b.pen ? 'true' : 'false';
+  $('editBookPenBrand').value = b.penBrand || '';
+  $('editBookNote').value = b.note || '';
+
+  $('editBookPage').classList.add('show');
+  $('editBookPage').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditBookPage(){
+  $('editBookPage').classList.remove('show');
+  document.body.style.overflow = '';
+  currentEditingInfoBook = null;
+}
+
+function saveEditedBookInfo(){
+  if(!currentEditingInfoBook) return;
+  const newTitle = $('editBookTitle').value.trim();
+  if(!newTitle){
+    alert('书名不能为空，请填写书名后再保存。');
+    $('editBookTitle').focus();
+    return;
+  }
+  const level = $('editBookLevel').value;
+  const isPen = $('editBookPen').value === 'true';
+  const penBrandVal = isPen ? $('editBookPenBrand').value.trim() : '';
+
+  const updatedFields = {
+    title: newTitle,
+    author: $('editBookAuthor').value.trim(),
+    lang: $('editBookLang').value.trim() || '英文',
+    age: $('editBookAge').value.trim() || '待补充',
+    lexile: $('editBookLexile').value.trim() || '无',
+    topic: $('editBookTopic').value.trim() || '待补充',
+    form: $('editBookForm').value.trim() || '待补充',
+    c: level,
+    cl: LEVEL_LABELS[level],
+    pen: isPen,
+    penBrand: penBrandVal,
+    pointLabel: isPen ? '点读' : '非点读',
+    note: $('editBookNote').value.trim()
+  };
+
+  Object.assign(currentEditingInfoBook, updatedFields);
+
+  // 持久化保存修改
+  editedBooksMap[currentEditingInfoBook.id] = Object.assign(
+    {},
+    editedBooksMap[currentEditingInfoBook.id] || {},
+    updatedFields
+  );
+  localStorage.setItem(EDITED_BOOKS_KEY, JSON.stringify(editedBooksMap));
+
+  // 若为新增绘本，同步更新 customBooks
+  const customIdx = customBooks.findIndex(x => x.id === currentEditingInfoBook.id);
+  if(customIdx >= 0){
+    Object.assign(customBooks[customIdx], updatedFields);
+    localStorage.setItem(CUSTOM_BOOKS_KEY, JSON.stringify(customBooks));
+  }
+
+  const savedId = currentEditingInfoBook.id;
+  closeEditBookPage();
+  openId = savedId;
+  render();
+}
+
+$('backFromEditPage').addEventListener('click', closeEditBookPage);
+$('cancelEditBookBtn').addEventListener('click', closeEditBookPage);
+$('saveEditBookBtn').addEventListener('click', saveEditedBookInfo);
+$('saveEditBookBtnBottom').addEventListener('click', saveEditedBookInfo);
+
+// 删除图书（二次确认防误删 + 自动持久化）
+$('deleteBookBtn').addEventListener('click', ()=>{
+  if(!currentEditingInfoBook) return;
+  const targetBook = currentEditingInfoBook;
+
+  // 第一次确认
+  const firstConfirm = window.confirm(`确定要删除《${targetBook.title}》吗？`);
+  if(!firstConfirm) return;
+
+  // 第二次确认
+  const secondConfirm = window.confirm(`⚠️ 二次确认：删除后《${targetBook.title}》将从书库中移除，且刷新页面后也不会恢复。确认彻底删除吗？`);
+  if(!secondConfirm) return;
+
+  const delId = targetBook.id;
+
+  // 从当前内存列表移除
+  const idx = BOOKS.findIndex(x => x.id === delId);
+  if(idx >= 0) BOOKS.splice(idx, 1);
+
+  // 若是用户新增图书，从 customBooks 移除
+  const cIdx = customBooks.findIndex(x => x.id === delId);
+  if(cIdx >= 0){
+    customBooks.splice(cIdx, 1);
+    localStorage.setItem(CUSTOM_BOOKS_KEY, JSON.stringify(customBooks));
+  }
+
+  // 记录到已删除 ID 列表，确保内置图书刷新后依然保持删除状态
+  if(!deletedBookIds.includes(delId)){
+    deletedBookIds.push(delId);
+    localStorage.setItem(DELETED_BOOKS_KEY, JSON.stringify(deletedBookIds));
+  }
+
+  // 清理对应编辑缓存和状态缓存
+  if(editedBooksMap[delId]){
+    delete editedBooksMap[delId];
+    localStorage.setItem(EDITED_BOOKS_KEY, JSON.stringify(editedBooksMap));
+  }
+  if(state[delId]){
+    delete state[delId];
+    save();
+  }
+
+  if(openId === delId) openId = null;
+  closeEditBookPage();
+  render();
+  $('count').textContent = `已删除《${targetBook.title}》 · 共 ${BOOKS.length} 本`;
+});
+
+render();
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>render(), 120);
+});
+</script>
+
+<script>
+/* 小麦绘本库云端同步层：无登录共享云端 + 公共 Storage + 单份 JSONB 数据 */
+(() => {
+  const SUPABASE_URL = 'https://tckhavtlmyktkwlljjft.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_X9UCfayrcP2i4UPeQNQyaQ_QqWA-NuV';
+  const TABLE = 'xiaomai_library_data';
+  const BUCKET = 'xiaomai-covers';
+  // 所有设备共同使用固定记录，不再依赖 Supabase Auth 用户
+  const SHARED_ID = '00000000-0000-0000-0000-000000000001';
+  const STORAGE_PREFIX = '__xiaomai_storage__:';
+  const statusEl = document.getElementById('cloudStatus');
+  let client = null, cloudReady = false, applyingCloud = false;
+  let saveTimer = null, channel = null, saveQueue = Promise.resolve();
+  let nativeSetItem = Storage.prototype.setItem, watcherInstalled = false, lastPayloadString = '';
+  const publicUrlToPath = new Map();
+
+  function status(text, kind='pending') {
+    statusEl.innerHTML = '';
+    const dot = document.createElement('i');
+    dot.className = 'cloud-dot' + (kind==='ok' ? ' ok' : kind==='err' ? ' err' : '');
+    const label = document.createElement('span');
+    label.textContent = text;
+    statusEl.append(dot,label);
+  }
+  function getSnapshot() {
+    return {
+      version: 1,
+      books: JSON.parse(JSON.stringify(BOOKS)),
+      customBooks: JSON.parse(JSON.stringify(customBooks)),
+      editedBooksMap: JSON.parse(JSON.stringify(editedBooksMap)),
+      deletedBookIds: JSON.parse(JSON.stringify(deletedBookIds)),
+      state: JSON.parse(JSON.stringify(state))
+    };
+  }
+  function localBackup(snapshot) {
+    applyingCloud = true;
+    try {
+      nativeSetItem.call(localStorage, CUSTOM_BOOKS_KEY, JSON.stringify(snapshot.customBooks || []));
+      nativeSetItem.call(localStorage, EDITED_BOOKS_KEY, JSON.stringify(snapshot.editedBooksMap || {}));
+      nativeSetItem.call(localStorage, DELETED_BOOKS_KEY, JSON.stringify(snapshot.deletedBookIds || []));
+      nativeSetItem.call(localStorage, LS_KEY, JSON.stringify(snapshot.state || {}));
+    } finally { applyingCloud = false; }
+  }
+  async function uploadDataUrl(dataUrl, path) {
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    const { error } = await client.storage.from(BUCKET).upload(path, blob, {
+      contentType: blob.type || 'image/jpeg', upsert: true, cacheControl: '3600'
+    });
+    if (error) throw error;
+    return STORAGE_PREFIX + path;
+  }
+  async function cloudCover(value, bookId, field) {
+    if (typeof value !== 'string' || !value) return value;
+    if (value.startsWith(STORAGE_PREFIX)) return value;
+    if (publicUrlToPath.has(value)) return STORAGE_PREFIX + publicUrlToPath.get(value);
+    if (value.startsWith('data:image/')) {
+      const safeId = String(bookId).replace(/[^a-zA-Z0-9_-]/g,'_');
+      const path = `${SHARED_ID}/${safeId}-${field}.jpg`;
+      return await uploadDataUrl(value, path);
+    }
+    return value;
+  }
+  async function prepareSnapshot() {
+    const snap = getSnapshot();
+    for (const book of snap.books) if (book.cover) book.cover = await cloudCover(book.cover, book.id, 'book');
+    for (const book of snap.customBooks) if (book.cover) book.cover = await cloudCover(book.cover, book.id, 'custom');
+    for (const [id, item] of Object.entries(snap.state || {})) {
+      if (item && item.cover) item.cover = await cloudCover(item.cover, id, 'state');
+    }
+    return snap;
+  }
+  function publicCover(value) {
+    if (typeof value !== 'string' || !value.startsWith(STORAGE_PREFIX)) return value;
+    const path = value.slice(STORAGE_PREFIX.length);
+    const { data } = client.storage.from(BUCKET).getPublicUrl(path);
+    publicUrlToPath.set(data.publicUrl, path);
+    return data.publicUrl;
+  }
+  function hydrateSnapshot(snap) {
+    for (const book of snap.books || []) if (book.cover) book.cover = publicCover(book.cover);
+    for (const book of snap.customBooks || []) if (book.cover) book.cover = publicCover(book.cover);
+    for (const item of Object.values(snap.state || {})) if (item?.cover) item.cover = publicCover(item.cover);
+    return snap;
+  }
+  function applySnapshot(snap) {
+    applyingCloud = true;
+    try {
+      BOOKS.splice(0, BOOKS.length, ...(snap.books || []));
+      customBooks = snap.customBooks || [];
+      editedBooksMap = snap.editedBooksMap || {};
+      deletedBookIds = snap.deletedBookIds || [];
+      state = snap.state || {};
+      localBackup(snap);
+    } finally { applyingCloud = false; }
+    render();
+  }
+  async function writeCloud() {
+    if (!cloudReady || applyingCloud) return;
+    status('正在同步到云端…');
+    const snap = await prepareSnapshot();
+    const serialized = JSON.stringify(snap);
+    const { error } = await client.from(TABLE).upsert({
+      user_id: SHARED_ID,
+      payload: snap,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    if (error) throw error;
+    lastPayloadString = serialized;
+    status('云端同步成功', 'ok');
+  }
+  function scheduleSave() {
+    if (!cloudReady || applyingCloud) return;
+    clearTimeout(saveTimer);
+    status('有修改待同步…');
+    saveTimer = setTimeout(() => {
+      saveQueue = saveQueue.then(writeCloud).catch(err => {
+        console.error('Cloud sync failed:', err);
+        status('同步失败：' + (err.message || '请检查网络和云端权限'), 'err');
+      });
+    }, 650);
+  }
+  function installLocalStorageWatcher() {
+    if (watcherInstalled) return;
+    watcherInstalled = true;
+    const originalSetItem = nativeSetItem;
+    Storage.prototype.setItem = function(key, value) {
+      originalSetItem.call(this, key, value);
+      if (this === localStorage &&
+          [CUSTOM_BOOKS_KEY, EDITED_BOOKS_KEY, DELETED_BOOKS_KEY, LS_KEY].includes(key)) scheduleSave();
+    };
+  }
+  async function loadCloud() {
+    status('正在读取共享云端书库…');
+    let { data, error } = await client.from(TABLE).select('payload').eq('user_id', SHARED_ID).maybeSingle();
+    if (error) throw error;
+    if (!data?.payload) {
+      // 兼容此前登录版可能已经写入的记录：优先迁移已有云端数据，避免覆盖
+      const legacy = await client.from(TABLE).select('payload').order('updated_at', {ascending:false}).limit(1).maybeSingle();
+      if (legacy.error) throw legacy.error;
+      if (legacy.data?.payload) {
+        const snap = hydrateSnapshot(legacy.data.payload);
+        applySnapshot(snap);
+        cloudReady = true;
+        status('正在把原有云端数据迁移为共享书库…');
+        await writeCloud();
+      } else {
+        // 首次启用：以当前设备的 321 本内置书目及本机修改、封面为准迁移
+        cloudReady = true;
+        status('首次启用：正在迁移当前设备的绘本和封面…');
+        await writeCloud();
+      }
+    } else {
+      const snap = hydrateSnapshot(data.payload);
+      lastPayloadString = JSON.stringify(data.payload);
+      applySnapshot(snap);
+      status('已连接共享云端 · 数据已加载', 'ok');
+    }
+    cloudReady = true;
+    installLocalStorageWatcher();
+    subscribeRealtime();
+  }
+  function subscribeRealtime() {
+    if (channel) client.removeChannel(channel);
+    channel = client.channel('xiaomai-library-public-sync')
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: TABLE, filter: `user_id=eq.${SHARED_ID}`
+      }, async payload => {
+        if (!payload.new?.payload) return;
+        const incomingString = JSON.stringify(payload.new.payload);
+        if (incomingString === lastPayloadString) return;
+        try {
+          status('检测到其他设备更新，正在同步…');
+          const snap = hydrateSnapshot(payload.new.payload);
+          lastPayloadString = incomingString;
+          applySnapshot(snap);
+          status('已同步其他设备的最新修改', 'ok');
+        } catch (err) {
+          console.error(err);
+          status('接收云端更新失败', 'err');
+        }
+      }).subscribe((stateName) => {
+        if (stateName === 'SUBSCRIBED') status('共享云端实时同步已连接', 'ok');
+        if (stateName === 'CHANNEL_ERROR' || stateName === 'TIMED_OUT') status('实时同步连接异常，请检查网络', 'err');
+      });
+  }
+  async function boot() {
+    if (!window.supabase?.createClient) {
+      status('Supabase SDK 加载失败，请检查网络后刷新页面', 'err');
+      return;
+    }
+    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+    try {
+      await loadCloud();
+    } catch (err) {
+      console.error('Shared cloud initialization failed:', err);
+      status('云端连接失败：' + (err.message || '请检查共享权限 SQL 和网络'), 'err');
+    }
+  }
+  boot();
+})();
+</script>
+
+
+<script>
+/* 本地安全备份：不依赖 Supabase 连接；导出当前内存数据、四个 localStorage 键，并尽可能把远程封面转存为 data URL */
+(() => {
+  const btn = document.getElementById('backupBooksBtn');
+  if (!btn) return;
+  const keys = ['xiaomai_custom_books_v1','xiaomai_edited_books_v1','xiaomai_deleted_books_v1','xiaomai_books_state_v1'];
+  const clone = value => JSON.parse(JSON.stringify(value ?? null));
+  const toDataUrl = blob => new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+  async function embedRemoteImages(root) {
+    const seen = new Map();
+    const failed = [];
+    async function walk(value, path) {
+      if (!value || typeof value !== 'object') return;
+      if (Array.isArray(value)) {
+        for (let i=0;i<value.length;i++) await walk(value[i], `${path}[${i}]`);
+        return;
+      }
+      for (const [key,val] of Object.entries(value)) {
+        const here = `${path}.${key}`;
+        if (key.toLowerCase().includes('cover') && typeof val === 'string' && /^https?:\/\//i.test(val)) {
+          if (seen.has(val)) { value[key] = seen.get(val); continue; }
+          try {
+            const response = await fetch(val, {mode:'cors', credentials:'omit'});
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const dataUrl = await toDataUrl(await response.blob());
+            seen.set(val, dataUrl);
+            value[key] = dataUrl;
+          } catch (e) { failed.push({path:here,url:val,error:String(e.message || e)}); }
+        } else if (val && typeof val === 'object') await walk(val, here);
+      }
+    }
+    await walk(root, 'backup');
+    return failed;
+  }
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = '正在整理备份…';
+    try {
+      const backup = {
+        format: 'xiaomai-library-backup-v1',
+        exportedAt: new Date().toISOString(),
+        page: location.href,
+        builtInBooks: clone(BOOKS),
+        customBooks: clone(customBooks),
+        editedBooksMap: clone(editedBooksMap),
+        deletedBookIds: clone(deletedBookIds),
+        state: clone(state),
+        rawLocalStorage: Object.fromEntries(keys.map(k => [k, localStorage.getItem(k)])),
+        imageBackupFailures: []
+      };
+      backup.imageBackupFailures = await embedRemoteImages({
+        builtInBooks: backup.builtInBooks,
+        customBooks: backup.customBooks,
+        editedBooksMap: backup.editedBooksMap,
+        state: backup.state
+      });
+      const blob = new Blob([JSON.stringify(backup)], {type:'application/json;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `小麦绘本库完整备份_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      const total = backup.builtInBooks.length + backup.customBooks.length;
+      const msg = `备份文件已生成：内置绘本 ${backup.builtInBooks.length} 本，自定义绘本 ${backup.customBooks.length} 本；封面图片转存失败 ${backup.imageBackupFailures.length} 项。`;
+      btn.textContent = '✓ 备份已下载';
+      alert(msg + (backup.imageBackupFailures.length ? '\n请把备份文件和此提示截图发给我，我们再补齐未能下载的封面。' : '\n请确认文件已出现在电脑“下载”文件夹中。'));
+    } catch (e) {
+      console.error('Backup export failed:', e);
+      alert('备份失败：' + (e.message || e));
+      btn.textContent = original;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
